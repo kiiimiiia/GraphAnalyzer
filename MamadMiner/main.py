@@ -1,12 +1,13 @@
-from flask import Flask, jsonify, request
 from collections import defaultdict
 import git2net
 import os
 import sqlite3
-import pandas as pd
 import networkx as nx
 from app.analyser import get_graph
 from app.cloner import clone_and_mine
+import flask
+from flask import Flask, jsonify, request
+
 app = Flask(__name__)
 
 node_info = []

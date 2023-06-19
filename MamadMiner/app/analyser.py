@@ -1,6 +1,6 @@
 
 
-from git2net4analysis import git2net
+import git2net
 import pathpy as pp
 
 def make_coediting_net(db_filename):
