@@ -5,11 +5,13 @@ import git2net
 import os
 from git import Repo
 import pandas as pd
+import shutil
+import stat
 
 def clone_and_mine(repo_full_url):
     # Clone the repository
-    repo_folder = repo_full_url.split('/')[-1]
-    sqlite_db_file = repo_full_url.split('/')[-1] + '.db'
+    repo_folder = repo_full_url.split('/')[-1].replace('.git', '')
+    sqlite_db_file = repo_folder.split('/')[-1] + '.db'
 
     Repo.clone_from(repo_full_url, repo_folder)
 
