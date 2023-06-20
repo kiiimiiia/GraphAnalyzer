@@ -13,11 +13,15 @@ def clone_and_mine(repo_full_url):
     repo_folder = repo_full_url.split('/')[-1].replace('.git', '')
     sqlite_db_file = repo_folder.split('/')[-1] + '.db'
 
-    Repo.clone_from(repo_full_url, repo_folder)
-
+    mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO  # This gives all permissions to all users
+    
     # Remove database if exists
     if os.path.exists(sqlite_db_file):
+        os.chmod(sqlite_db_file, mode)
         os.remove(sqlite_db_file)
+    if os.path.exists(repo_folder):
+        os.chmod(repo_folder, mode)
+        shutil.rmtree(repo_folder)
 
     git2net.mine_git_repo(repo_full_url, sqlite_db_file)
     disambiguate_aliases(sqlite_db_file)
