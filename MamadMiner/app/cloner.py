@@ -15,7 +15,6 @@ def clone_and_mine(repo_full_url):
 
     mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO  # This gives all permissions to all users
     
-    # Remove database if exists
     if os.path.exists(sqlite_db_file):
         os.chmod(sqlite_db_file, mode)
         os.remove(sqlite_db_file)
