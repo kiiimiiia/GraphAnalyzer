@@ -23,7 +23,9 @@ def clone_and_mine(repo_full_url):
         os.chmod(repo_folder, mode)
         shutil.rmtree(repo_folder)
 
-    git2net.mine_git_repo(repo_full_url, sqlite_db_file)
+    Repo.clone_from(repo_full_url, repo_folder)
+
+    git2net.mine_git_repo(repo_folder, sqlite_db_file)
     disambiguate_aliases(sqlite_db_file)
     return sqlite_db_file
 
