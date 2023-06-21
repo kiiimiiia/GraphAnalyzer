@@ -8,6 +8,8 @@ from app.cloner import clone_and_mine
 import flask
 from flask import Flask, jsonify, request
 import json
+from flask import Flask, request, Response
+import json
 
 app = Flask(__name__)
 
@@ -18,23 +20,21 @@ edges = []
 def mine_repo():
 
     repo_url = request.json.get('url') # Get URL from the POST request body
+    date = request.json.get('date') 
     
     sqlite_db_file = clone_and_mine(repo_url)
     
-    n, node_info, edge_info = get_graph(sqlite_db_file)
+    n, node_info, edge_info = get_graph(sqlite_db_file, date)
     nodes = n.nodes
-    edges = json.dumps(n.edges)
+    edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in dict(n.edges).items()}
 
-    response_data = {
-        'nodes': nodes,
-        'edges': edges
+    data = {
+        "message": "Repo mined successfully",
+        "nodes": nodes,
+        "edges": edges
     }
-
-    return jsonify(
-    {"message": "Repo mined successfully",
-     "nodes": nodes,
-     "edges": edges}
-    )
+    
+    return jsonify(data)
 
 
 if __name__ == "__main__":
