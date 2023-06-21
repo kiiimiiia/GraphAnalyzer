@@ -7,11 +7,12 @@ from app.analyser import get_graph
 from app.cloner import clone_and_mine
 import flask
 from flask import Flask, jsonify, request
+import json
 
 app = Flask(__name__)
 
-node_info = []
-edge_info = []
+nodes = []
+edges = []
 
 @app.route('/mine_repo', methods=['POST'])
 def mine_repo():
@@ -21,10 +22,19 @@ def mine_repo():
     sqlite_db_file = clone_and_mine(repo_url)
     
     n, node_info, edge_info = get_graph(sqlite_db_file)
-    node_info = node_info
-    edge_info = edge_info
+    nodes = n.nodes
+    edges = json.dumps(n.edges)
 
-    return jsonify({"message": "Repo mined successfully"})
+    response_data = {
+        'nodes': nodes,
+        'edges': edges
+    }
+
+    return jsonify(
+    {"message": "Repo mined successfully",
+     "nodes": nodes,
+     "edges": edges}
+    )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/MamadMiner/git2net.git" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis" vcs="Git" />
+  </component>
+</project>
