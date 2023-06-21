@@ -26,7 +26,7 @@ def mine_repo():
     
     n, node_info, edge_info = get_graph(sqlite_db_file, date)
     nodes = n.nodes
-    edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in dict(n.edges).items()}
+    edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}
 
     data = {
         "message": "Repo mined successfully",
@@ -34,7 +34,9 @@ def mine_repo():
         "edges": edges
     }
     
-    return jsonify(data)
+    json_data = json.dumps(data)
+
+    return Response(response=json_data, status=200, mimetype='application/json')
 
 
 if __name__ == "__main__":
