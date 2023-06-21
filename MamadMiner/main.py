@@ -39,5 +39,30 @@ def mine_repo():
     return Response(response=json_data, status=200, mimetype='application/json')
 
 
+@app.route('/mine_repo_with_date', methods=['POST'])
+def mine_repo_with_date():
+    repo_url = request.headers.get('url') # Get URL from the POST request headers
+    date = request.headers.get('date') # Get date from the POST request headers
+
+    # Check if date is provided
+    if date is None:
+        return jsonify({"message": "Please provide a date in your request."}), 400
+
+    sqlite_db_file = clone_and_mine(repo_url)
+
+    n, node_info, edge_info = get_graph(sqlite_db_file, date)
+    nodes = n.nodes
+    edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}
+
+    data = {
+        "message": "Repo mined successfully",
+        "nodes": nodes,
+        "edges": edges
+    }
+
+    json_data = json.dumps(data)
+
+    return Response(response=json_data, status=200, mimetype='application/json')
+
 if __name__ == "__main__":
     app.run(debug=True)
