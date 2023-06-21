@@ -19,8 +19,8 @@ edges = []
 @app.route('/mine_repo', methods=['POST'])
 def mine_repo():
 
-    repo_url = request.json.get('url') # Get URL from the POST request body
-    date = request.json.get('date') 
+    repo_url = request.headers.get('url') # Get URL from the POST request headers
+    date = request.headers.get('date') 
     
     sqlite_db_file = clone_and_mine(repo_url)
     
