@@ -19,4 +19,8 @@ class MeasurementsCalculator:
         file_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, str)}
         return author_degree_centrality, file_degree_centrality
 
+    def compute_betweenness_centrality(self):
+        betweenness_centrality = nx.betweenness_centrality(self.graph)
+        return betweenness_centrality
+
 
