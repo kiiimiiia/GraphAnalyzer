@@ -27,3 +27,14 @@ class MeasurementsCalculator:
         closeness_centrality = nx.closeness_centrality(self.graph)
         return closeness_centrality
 
+    def compute_eigenvector_centrality(self):
+        eigenvector_centrality = nx.eigenvector_centrality(self.graph)
+        return eigenvector_centrality
+
+    def compute_page_rank(self):
+        page_rank = nx.pagerank(self.graph)
+        return page_rank
+
+    def compute_clustering_coefficient(self):
+        clustering_coefficient = nx.clustering(self.graph)
+        return clustering_coefficient
