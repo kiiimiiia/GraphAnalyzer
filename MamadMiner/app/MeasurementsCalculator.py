@@ -23,4 +23,7 @@ class MeasurementsCalculator:
         betweenness_centrality = nx.betweenness_centrality(self.graph)
         return betweenness_centrality
 
+    def compute_closeness_centrality(self):
+        closeness_centrality = nx.closeness_centrality(self.graph)
+        return closeness_centrality
 
