@@ -11,13 +11,16 @@ from flask import Flask, jsonify, request
 import json
 from flask import Flask, request, Response
 import json
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, resources={r"/mine_repo": {"origins": "http://localhost:3000"}})
+
 
 nodes = []
 edges = []
 
-@app.route('/mine_repo', methods=['POST'])
+@app.route('/mine_repo', methods=['POST','GET'])
 def mine_repo():
 
     repo_url = request.headers.get('url') # Get URL from the POST request headers
