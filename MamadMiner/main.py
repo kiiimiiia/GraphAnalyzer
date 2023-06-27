@@ -1,9 +1,5 @@
-from collections import defaultdict
 from datetime import datetime
-import git2net
-import os
-import sqlite3
-import networkx as nx
+from MamadMiner.app.MeasurementsCalculator import MeasurementsCalculator
 from app.analyser import get_graph
 from app.cloner import clone_and_mine
 import flask
@@ -45,7 +41,6 @@ def mine_repo():
 
 @app.route('/mine_repo_with_date', methods=['POST'])
 def mine_repo_with_date():
-    
     repo_url = request.headers.get('url') # Get URL from the POST request headers
     date = request.headers.get('from_date') # Get date from the POST request headers
 
@@ -62,10 +57,29 @@ def mine_repo_with_date():
     nodes = n.nodes
     edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}
 
+    calculator = MeasurementsCalculator(nodes, edges)
+    author_degree_centrality, file_degree_centrality = calculator.compute_degree_centrality()
+    betweenness_centrality = calculator.compute_betweenness_centrality()
+    closeness_centrality = calculator.compute_closeness_centrality()
+    eigenvector_centrality = calculator.compute_eigenvector_centrality()
+    page_rank = calculator.compute_page_rank()
+    clustering_coefficient = calculator.compute_clustering_coefficient()
+
+    measurements = {
+        "author_degree_centrality": author_degree_centrality,
+        "file_degree_centrality": file_degree_centrality,
+        "betweenness_centrality": betweenness_centrality,
+        "closeness_centrality": closeness_centrality,
+        "eigenvector_centrality": eigenvector_centrality,
+        "page_rank": page_rank,
+        "clustering_coefficient": clustering_coefficient
+    }
+
     data = {
         "message": "Repo mined successfully",
         "nodes": nodes,
-        "edges": edges
+        "edges": edges,
+        "measurements": measurements
     }
 
     json_data = json.dumps(data)
@@ -74,3 +88,5 @@ def mine_repo_with_date():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+    # flask --app main.py --debug run
