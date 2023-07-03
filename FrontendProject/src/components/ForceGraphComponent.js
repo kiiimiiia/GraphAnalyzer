@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ForceGraph2D } from 'react-force-graph';
+import writerIcon from '../images/writer.png'; // Import the writer icon
+import documentIcon from '../images/document.png'; // Import the document icon
 
 const initialData = {
   nodes: [
@@ -47,46 +49,101 @@ export const ForceGraphComponent = () => {
     const data = await response.json();
     console.log(data);
     if (response.ok) {
-
-      // Convert nodes from an object to an array and map each one to { id: nodeId }
       const nodesArray = Object.entries(data.nodes)
-      .filter(([key, value]) => !isNaN(key))  // Filter to only entries where the key is a number
-      .map(([key, value]) => ({ id: key, ...value })); // Transform each entry into a node object
-      
-      console.log(nodesArray)
+        .map(([key, value]) => {
+          const node = { id: key, ...value };
+          node.icon = isNaN(key) ? 'document' : 'writer';
+          return node;
+        });
+    
+      const edgesArray = Object.entries(data.edges)
+        .map(([key, value]) => {
+          const [source, target] = key.split(':').map((id) => id.trim());
+          return { source: source || '', target: target || '', ...value };
+        })
+        .filter((edge) => edge.source !== '' && edge.target !== '');
+    
       const convertedData = {
         nodes: nodesArray,
-        links: [], // Since you don't need edges, keep this array empty
+        links: edgesArray,
       };
-      
+    
       setGraphData(convertedData);
-      
     } else {
       console.error('Failed to fetch graph data:', data);
     }
+      
+  };
+
+  const nodeCanvasObject = (node, ctx, globalScale) => {
+    const ICON_SIZE = 36;
+    const textWidth = ctx.measureText(node.name).width;
+    const radius = Math.max(ICON_SIZE, textWidth) / 2 + 4;
+
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
+
+    if (node.icon === 'writer') {
+      const image = new Image();
+      image.src = writerIcon;
+      ctx.drawImage(image, node.x - ICON_SIZE / 2, node.y - ICON_SIZE / 2, ICON_SIZE, ICON_SIZE);
+    } else if (node.icon === 'document') {
+      const image = new Image();
+      image.src = documentIcon;
+      ctx.drawImage(image, node.x - ICON_SIZE / 2, node.y - ICON_SIZE / 2, ICON_SIZE, ICON_SIZE);
+
+    }
+
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '12px Sans-Serif';
+    ctx.fillText(node.id , node.x, node.y + radius + 12);
+
+    // Draw links
+    ctx.strokeStyle = '#999';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    graphData.links.forEach((link) => {
+      console.log(node.id );
+      if (link.source === node.id || link.target === node.id) {
+        const sourceNode = graphData.nodes.find((n) => n.id === link.source);
+        const targetNode = graphData.nodes.find((n) => n.id === link.target);
+        if (sourceNode && targetNode) {
+          ctx.moveTo(sourceNode.x, sourceNode.y);
+          ctx.lineTo(targetNode.x, targetNode.y);
+        }
+      }
+    });
+    ctx.stroke();
   };
 
   return (
     <div>
       <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
-        <input 
-          type="text" 
-          value={url} 
-          onChange={e => setUrl(e.target.value)} 
+        <input
+          type="text"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
           placeholder="Enter URL"
           style={{ marginRight: '10px' }}
         />
         <button type="submit">Get the Network</button>
       </form>
-      <ForceGraph2D 
+      <ForceGraph2D
         graphData={graphData}
         nodeAutoColorBy="id"
-        onNodeHover={node => document.body.style.cursor = node ? 'pointer' : null}
-        onNodeClick={node => window.alert(`Clicked node ${node.id}`)}
+        onNodeHover={(node) => (document.body.style.cursor = node ? 'pointer' : null)}
+        onNodeClick={(node) => window.alert(`Clicked node ${node.id}`)}
+        nodeCanvasObject={nodeCanvasObject}
       />
     </div>
   );
 };
-
 
 export default ForceGraphComponent;
