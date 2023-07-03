@@ -5,3 +5,5 @@ Our goal is to create a webpage for analyzing Git repositories that allows users
 We also need to provide users with the ability to download these measurements, plots, and analysis. For inspiration on interactivity, we found https://webwebpage.github.io/ to be a useful initial step towards our goal.
 
 Lastly, users should have the ability to check several repositories and save them for future reference. If you have any questions or concerns, please do not hesitate to reach out to us.
+
+https://networkx.org/documentation/stable/reference/generated/networkx.drawing.layout.bipartite_layout.html
