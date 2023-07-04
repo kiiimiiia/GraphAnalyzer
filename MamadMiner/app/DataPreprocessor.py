@@ -1,5 +1,11 @@
+
+
+
+
+
+
 class DataPreprocessor:
-    def process(self, nodes, edges):
+    def sort(self, nodes, edges):
         # Sort nodes based on 'outweight'
         sorted_nodes = {k: v for k, v in sorted(nodes.items(), key=lambda item: item[1]['outweight'], reverse=True)}
 

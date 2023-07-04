@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from MamadMiner.app.DataPreprocessor import DataPreprocessor
 from app.MeasurementsCalculator import MeasurementsCalculator
 from app.analyser import get_graph
 from app.cloner import clone_and_mine
@@ -12,6 +14,7 @@ app = Flask(__name__)
 
 nodes = []
 edges = []
+preprocessor = DataPreprocessor()
 
 @app.route('/mine_repo', methods=['POST','GET'])
 def mine_repo():
@@ -22,8 +25,9 @@ def mine_repo():
     sqlite_db_file = clone_and_mine(repo_url)
     
     n, node_info, edge_info = get_graph(sqlite_db_file, date)
-    nodes = n.nodes
-    edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}
+    raw_nodes = n.nodes
+    raw_edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}
+    nodes, edges = preprocessor.sort(raw_nodes, raw_edges)
 
     data = {
         "message": "Repo mined successfully",
@@ -50,8 +54,9 @@ def mine_repo_with_date():
     sqlite_db_file = clone_and_mine(repo_url)
 
     n, node_info, edge_info = get_graph(sqlite_db_file, from_date)
-    nodes = n.nodes
-    edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}
+    raw_nodes = n.nodes
+    raw_edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}
+    nodes, edges = preprocessor.sort(raw_nodes, raw_edges)
 
     calculator = MeasurementsCalculator(nodes, edges)
     author_degree_centrality, file_degree_centrality = calculator.compute_degree_centrality()
@@ -83,6 +88,6 @@ def mine_repo_with_date():
     return Response(response=json_data, status=200, mimetype='application/json')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(port=8000, debug=True)
 
     # flask --app main.py --debug run
