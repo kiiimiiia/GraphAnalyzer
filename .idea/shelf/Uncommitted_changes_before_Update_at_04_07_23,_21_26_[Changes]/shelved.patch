@@ -1,0 +1,459 @@
+Index: MamadMiner/main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from datetime import datetime\nfrom MamadMiner.app.MeasurementsCalculator import MeasurementsCalculator\nfrom app.analyser import get_graph\nfrom app.cloner import clone_and_mine\nimport flask\nfrom flask import Flask, jsonify, request\nimport json\nfrom flask import Flask, request, Response\nimport json\n\napp = Flask(__name__)\n\nnodes = []\nedges = []\n\n@app.route('/mine_repo', methods=['POST'])\ndef mine_repo():\n\n    repo_url = request.headers.get('url') # Get URL from the POST request headers\n    date = request.headers.get('date') \n    \n    sqlite_db_file = clone_and_mine(repo_url)\n    \n    n, node_info, edge_info = get_graph(sqlite_db_file, date)\n    nodes = n.nodes\n    edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}\n\n    data = {\n        \"message\": \"Repo mined successfully\",\n        \"nodes\": nodes,\n        \"edges\": edges\n    }\n    \n    json_data = json.dumps(data)\n\n    return Response(response=json_data, status=200, mimetype='application/json')\n\n\n@app.route('/mine_repo_with_date', methods=['POST'])\ndef mine_repo_with_date():\n    repo_url = request.headers.get('url') # Get URL from the POST request headers\n    date = request.headers.get('from_date') # Get date from the POST request headers\n\n    year, month, day = map(int, date.split(\",\"))\n    from_date = datetime(year, month, day)\n\n    # Check if date is provided\n    if date is None:\n        return jsonify({\"message\": \"Please provide a date in your request.\"}), 400\n\n    sqlite_db_file = clone_and_mine(repo_url)\n\n    n, node_info, edge_info = get_graph(sqlite_db_file, from_date)\n    nodes = n.nodes\n    edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}\n\n    calculator = MeasurementsCalculator(nodes, edges)\n    author_degree_centrality, file_degree_centrality = calculator.compute_degree_centrality()\n    betweenness_centrality = calculator.compute_betweenness_centrality()\n    closeness_centrality = calculator.compute_closeness_centrality()\n    eigenvector_centrality = calculator.compute_eigenvector_centrality()\n    page_rank = calculator.compute_page_rank()\n    clustering_coefficient = calculator.compute_clustering_coefficient()\n\n    measurements = {\n        \"author_degree_centrality\": author_degree_centrality,\n        \"file_degree_centrality\": file_degree_centrality,\n        \"betweenness_centrality\": betweenness_centrality,\n        \"closeness_centrality\": closeness_centrality,\n        \"eigenvector_centrality\": eigenvector_centrality,\n        \"page_rank\": page_rank,\n        \"clustering_coefficient\": clustering_coefficient\n    }\n\n    data = {\n        \"message\": \"Repo mined successfully\",\n        \"nodes\": nodes,\n        \"edges\": edges,\n        \"measurements\": measurements\n    }\n\n    json_data = json.dumps(data)\n\n    return Response(response=json_data, status=200, mimetype='application/json')\n\nif __name__ == \"__main__\":\n    app.run(debug=True)\n\n    # flask --app main.py --debug run
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/MamadMiner/main.py b/MamadMiner/main.py
+--- a/MamadMiner/main.py	(revision 6a3354829f04e400a49c9e72a27ea5e84a8204b4)
++++ b/MamadMiner/main.py	(date 1688497947746)
+@@ -1,5 +1,5 @@
+ from datetime import datetime
+-from MamadMiner.app.MeasurementsCalculator import MeasurementsCalculator
++from app.MeasurementsCalculator import MeasurementsCalculator
+ from app.analyser import get_graph
+ from app.cloner import clone_and_mine
+ import flask
+@@ -35,7 +35,6 @@
+ 
+     return Response(response=json_data, status=200, mimetype='application/json')
+ 
+-
+ @app.route('/mine_repo_with_date', methods=['POST'])
+ def mine_repo_with_date():
+     repo_url = request.headers.get('url') # Get URL from the POST request headers
+@@ -56,20 +55,20 @@
+ 
+     calculator = MeasurementsCalculator(nodes, edges)
+     author_degree_centrality, file_degree_centrality = calculator.compute_degree_centrality()
+-    betweenness_centrality = calculator.compute_betweenness_centrality()
+-    closeness_centrality = calculator.compute_closeness_centrality()
+-    eigenvector_centrality = calculator.compute_eigenvector_centrality()
+-    page_rank = calculator.compute_page_rank()
+-    clustering_coefficient = calculator.compute_clustering_coefficient()
++    # betweenness_centrality = calculator.compute_betweenness_centrality()
++    # closeness_centrality = calculator.compute_closeness_centrality()
++    # eigenvector_centrality = calculator.compute_eigenvector_centrality()
++    # page_rank = calculator.compute_page_rank()
++    # clustering_coefficient = calculator.compute_clustering_coefficient()
+ 
+     measurements = {
+         "author_degree_centrality": author_degree_centrality,
+         "file_degree_centrality": file_degree_centrality,
+-        "betweenness_centrality": betweenness_centrality,
+-        "closeness_centrality": closeness_centrality,
+-        "eigenvector_centrality": eigenvector_centrality,
+-        "page_rank": page_rank,
+-        "clustering_coefficient": clustering_coefficient
++        # "betweenness_centrality": betweenness_centrality,
++        # "closeness_centrality": closeness_centrality,
++        # "eigenvector_centrality": eigenvector_centrality,
++        # "page_rank": page_rank,
++        # "clustering_coefficient": clustering_coefficient
+     }
+ 
+     data = {
+Index: MamadMiner/app/MeasurementsCalculator.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import networkx as nx\n\nclass MeasurementsCalculator:\n    def __init__(self, nodes, edges):\n        self.nodes = nodes\n        self.edges = edges\n        self.graph = self._build_graph()\n\n    def _build_graph(self):\n        G = nx.DiGraph()\n        G.add_nodes_from(self.nodes.keys())\n        for key, value in self.edges.items():\n            G.add_edge(value['connected_to'], key, weight=value['weight'])\n        return G\n\n    def compute_degree_centrality(self):\n        degree_centrality = nx.degree_centrality(self.graph)\n        author_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, int)}\n        file_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, str)}\n        return author_degree_centrality, file_degree_centrality\n\n    def compute_betweenness_centrality(self):\n        betweenness_centrality = nx.betweenness_centrality(self.graph)\n        return betweenness_centrality\n\n    def compute_closeness_centrality(self):\n        closeness_centrality = nx.closeness_centrality(self.graph)\n        return closeness_centrality\n\n    def compute_eigenvector_centrality(self):\n        eigenvector_centrality = nx.eigenvector_centrality(self.graph)\n        return eigenvector_centrality\n\n    def compute_page_rank(self):\n        page_rank = nx.pagerank(self.graph)\n        return page_rank\n\n    def compute_clustering_coefficient(self):\n        clustering_coefficient = nx.clustering(self.graph)\n        return clustering_coefficient\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/MamadMiner/app/MeasurementsCalculator.py b/MamadMiner/app/MeasurementsCalculator.py
+--- a/MamadMiner/app/MeasurementsCalculator.py	(revision 6a3354829f04e400a49c9e72a27ea5e84a8204b4)
++++ b/MamadMiner/app/MeasurementsCalculator.py	(date 1688118847224)
+@@ -19,22 +19,22 @@
+         file_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, str)}
+         return author_degree_centrality, file_degree_centrality
+ 
+-    def compute_betweenness_centrality(self):
+-        betweenness_centrality = nx.betweenness_centrality(self.graph)
+-        return betweenness_centrality
++    # def compute_betweenness_centrality(self):
++    #     betweenness_centrality = nx.betweenness_centrality(self.graph)
++    #     return betweenness_centrality
+ 
+-    def compute_closeness_centrality(self):
+-        closeness_centrality = nx.closeness_centrality(self.graph)
+-        return closeness_centrality
++    # def compute_closeness_centrality(self):
++    #     closeness_centrality = nx.closeness_centrality(self.graph)
++    #     return closeness_centrality
+ 
+-    def compute_eigenvector_centrality(self):
+-        eigenvector_centrality = nx.eigenvector_centrality(self.graph)
+-        return eigenvector_centrality
++    # def compute_eigenvector_centrality(self):
++    #     eigenvector_centrality = nx.eigenvector_centrality(self.graph)
++    #     return eigenvector_centrality
+ 
+-    def compute_page_rank(self):
+-        page_rank = nx.pagerank(self.graph)
+-        return page_rank
++    # def compute_page_rank(self):
++    #     page_rank = nx.pagerank(self.graph)
++    #     return page_rank
+ 
+-    def compute_clustering_coefficient(self):
+-        clustering_coefficient = nx.clustering(self.graph)
+-        return clustering_coefficient
++    # def compute_clustering_coefficient(self):
++    #     clustering_coefficient = nx.clustering(self.graph)
++    #     return clustering_coefficient
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"VcsDirectoryMappings\">\n    <mapping directory=\"\" vcs=\"Git\" />\n    <mapping directory=\"$PROJECT_DIR$/MamadMiner/git2net.git\" vcs=\"Git\" />\n    <mapping directory=\"$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials\" vcs=\"Git\" />\n    <mapping directory=\"$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis\" vcs=\"Git\" />\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+--- a/.idea/vcs.xml	(revision 6a3354829f04e400a49c9e72a27ea5e84a8204b4)
++++ b/.idea/vcs.xml	(date 1687368245368)
+@@ -2,8 +2,11 @@
+ <project version="4">
+   <component name="VcsDirectoryMappings">
+     <mapping directory="" vcs="Git" />
+-    <mapping directory="$PROJECT_DIR$/MamadMiner/git2net.git" vcs="Git" />
++    <mapping directory="$PROJECT_DIR$/MamadMiner/git2net" vcs="Git" />
+     <mapping directory="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials" vcs="Git" />
++    <mapping directory="$PROJECT_DIR$/MamadMiner/notebooks/git2net.git" vcs="Git" />
+     <mapping directory="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis" vcs="Git" />
++    <mapping directory="$PROJECT_DIR$/MamadMiner/notebooks/mygraph" vcs="Git" />
++    <mapping directory="$PROJECT_DIR$/git2net.git" vcs="Git" />
+   </component>
+ </project>
+\ No newline at end of file
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"ea4049ba-a225-4af5-9659-8462573ad8a6\" name=\"Changes\" comment=\"\">\n      <change beforePath=\"$PROJECT_DIR$/MamadMiner/app/cloner.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/MamadMiner/app/cloner.py\" afterDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n    <option name=\"UPDATE_TYPE\" value=\"REBASE\" />\n  </component>\n  <component name=\"MarkdownSettingsMigration\">\n    <option name=\"stateVersion\" value=\"1\" />\n  </component>\n  <component name=\"ProjectId\" id=\"2RSXT3CgjrWmghFdfCV2gOF7OZk\" />\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\"><![CDATA[{\n  \"keyToString\": {\n    \"RunOnceActivity.OpenProjectViewOnStart\": \"true\",\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\n    \"WebServerToolWindowFactoryState\": \"false\",\n    \"last_opened_file_path\": \"/Users/imamad/Desktop/Uni/SS23/Lab/graphanalyzer\",\n    \"vue.rearranger.settings.migration\": \"true\"\n  }\n}]]></component>\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"ea4049ba-a225-4af5-9659-8462573ad8a6\" name=\"Changes\" comment=\"\" />\n      <created>1687244460991</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1687244460991</updated>\n      <workItem from=\"1687244462582\" duration=\"156000\" />\n    </task>\n    <servers />\n  </component>\n  <component name=\"TypeScriptGeneratedFilesManager\">\n    <option name=\"version\" value=\"3\" />\n  </component>\n  <component name=\"Vcs.Log.Tabs.Properties\">\n    <option name=\"TAB_STATES\">\n      <map>\n        <entry key=\"MAIN\">\n          <value>\n            <State />\n          </value>\n        </entry>\n      </map>\n    </option>\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 6a3354829f04e400a49c9e72a27ea5e84a8204b4)
++++ b/.idea/workspace.xml	(date 1688498734645)
+@@ -1,14 +1,145 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
++  <component name="AutoImportSettings">
++    <option name="autoReloadType" value="SELECTIVE" />
++  </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="ea4049ba-a225-4af5-9659-8462573ad8a6" name="Changes" comment="">
+-      <change beforePath="$PROJECT_DIR$/MamadMiner/app/cloner.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/app/cloner.py" afterDir="false" />
++    <list default="true" id="ea4049ba-a225-4af5-9659-8462573ad8a6" name="Changes" comment="used measurement calculator in main file and respond to user request.">
++      <change beforePath="$PROJECT_DIR$/.idea/graphanalyzer.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/graphanalyzer.iml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/app/MeasurementsCalculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/app/MeasurementsCalculator.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/app/analyser.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/app/analyser.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/main.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/1_Cloning_Git_Repositories.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/1_Cloning_Git_Repositories.ipynb" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/2_Mining_Git_Repositories.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/2_Mining_Git_Repositories.ipynb" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/3_Author_Disambiguation.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/3_Author_Disambiguation.ipynb" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/4_Network_Analysis.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/4_Network_Analysis.ipynb" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/5_Database_Analysis.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/5_Database_Analysis.ipynb" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/6_Computing_Complexities.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/6_Computing_Complexities.ipynb" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/LICENSE" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/MSR_2023.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/MSR_2023.ipynb" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/README.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/figures/coediting_network_creation.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/figures/coediting_network_creation.pdf" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/figures/mining.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/figures/mining.pdf" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net-tutorials/requirements.txt" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.github/ISSUE_TEMPLATE/bug_report.md" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.github/ISSUE_TEMPLATE/bug_report.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.github/ISSUE_TEMPLATE/feature_request.md" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.github/ISSUE_TEMPLATE/feature_request.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.github/workflows/python-app.yml" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.github/workflows/python-app.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.github/workflows/python-publish.yml" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.github/workflows/python-publish.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.gitignore" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.gitmodules" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/.gitmodules" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/LICENSE.txt" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/LICENSE.txt" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/README.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/Makefile" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/index.html" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/make.bat" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/make.bat" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/requirements.txt" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/api_reference.rst" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/api_reference.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/conf.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/getting_started.rst" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/getting_started.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/index.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/modules.rst" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/modules.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/overview_installation.rst" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/docs/source/overview_installation.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/__init__.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/command_line.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/command_line.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/complexity.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/complexity.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/disambiguation.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/disambiguation.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/extraction.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/extraction.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.editorconfig" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.gitattributes" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.github/funding.yml" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.github/funding.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.github/security.md" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.github/security.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.gitignore" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.npmrc" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.npmrc" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.travis.yml" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/.travis.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/binary-extensions.json" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/binary-extensions.json" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/binary-extensions.json.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/binary-extensions.json.d.ts" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/index.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/index.d.ts" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/index.js" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/index.test-d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/index.test-d.ts" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/license" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/license" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/package.json" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/readme.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/test.js" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/helpers/binary-extensions/test.js" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/visualisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/git2net/visualisation.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/pyproject.toml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/setup.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/setup.cfg" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/test_repos/test_repo_1.zip" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/test_repos/test_repo_1.zip" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/tests/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/tests/__init__.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/tests/test_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/MamadMiner/notebooks/git2net4analysis/tests/test_functions.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/.github/ISSUE_TEMPLATE/bug_report.md" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/.github/ISSUE_TEMPLATE/bug_report.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/.github/ISSUE_TEMPLATE/feature_request.md" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/.github/ISSUE_TEMPLATE/feature_request.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/.github/workflows/python-app.yml" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/.github/workflows/python-app.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/.github/workflows/python-publish.yml" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/.github/workflows/python-publish.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/.gitignore" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/.gitmodules" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/.gitmodules" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/LICENSE.txt" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/LICENSE.txt" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/README.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/Makefile" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/index.html" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/make.bat" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/make.bat" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/requirements.txt" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/source/api_reference.rst" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/source/api_reference.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/source/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/source/conf.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/source/getting_started.rst" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/source/getting_started.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/source/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/source/index.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/source/modules.rst" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/source/modules.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/docs/source/overview_installation.rst" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/docs/source/overview_installation.rst" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/__init__.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/command_line.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/command_line.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/complexity.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/complexity.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/disambiguation.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/disambiguation.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/extraction.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/extraction.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.editorconfig" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.gitattributes" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.github/funding.yml" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.github/funding.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.github/security.md" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.github/security.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.gitignore" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.npmrc" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.npmrc" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.travis.yml" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/.travis.yml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/binary-extensions.json" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/binary-extensions.json" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/binary-extensions.json.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/binary-extensions.json.d.ts" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/index.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/index.d.ts" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/index.js" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/index.test-d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/index.test-d.ts" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/license" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/license" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/package.json" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/readme.md" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/test.js" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/helpers/binary-extensions/test.js" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/git2net/visualisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/git2net/visualisation.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/pyproject.toml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/setup.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/setup.cfg" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/test_repos/test_repo_1.zip" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/test_repos/test_repo_1.zip" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/tests/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/tests/__init__.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/git2net.git/tests/test_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/git2net.git/tests/test_functions.py" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+     <option name="LAST_RESOLUTION" value="IGNORE" />
+   </component>
++  <component name="FileTemplateManagerImpl">
++    <option name="RECENT_TEMPLATES">
++      <list>
++        <option value="Python Script" />
++      </list>
++    </option>
++  </component>
++  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
++    <envs>
++      <env key="FLASK_APP" value="app" />
++    </envs>
++    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
++    <option name="myEnvs">
++      <map>
++        <entry key="FLASK_APP" value="app" />
++      </map>
++    </option>
++  </component>
+   <component name="Git.Settings">
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+     <option name="UPDATE_TYPE" value="REBASE" />
+@@ -21,15 +152,49 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent"><![CDATA[{
+-  "keyToString": {
+-    "RunOnceActivity.OpenProjectViewOnStart": "true",
+-    "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "WebServerToolWindowFactoryState": "false",
+-    "last_opened_file_path": "/Users/imamad/Desktop/Uni/SS23/Lab/graphanalyzer",
+-    "vue.rearranger.settings.migration": "true"
++  <component name="PropertiesComponent">{
++  &quot;keyToString&quot;: {
++    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
++    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
++    &quot;last_opened_file_path&quot;: &quot;/Users/imamad/Desktop/Uni/SS23/Lab/graphanalyzer&quot;,
++    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
++    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
++    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
++    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
++    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
++    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+   }
+-}]]></component>
++}</component>
++  <component name="RunManager">
++    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
++      <module name="graphanalyzer" />
++      <option name="INTERPRETER_OPTIONS" value="" />
++      <option name="PARENT_ENVS" value="true" />
++      <envs>
++        <env name="PYTHONUNBUFFERED" value="1" />
++      </envs>
++      <option name="SDK_HOME" value="" />
++      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/MamadMiner" />
++      <option name="IS_MODULE_SDK" value="true" />
++      <option name="ADD_CONTENT_ROOTS" value="true" />
++      <option name="ADD_SOURCE_ROOTS" value="true" />
++      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
++      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MamadMiner/main.py" />
++      <option name="PARAMETERS" value="" />
++      <option name="SHOW_COMMAND_LINE" value="false" />
++      <option name="EMULATE_TERMINAL" value="false" />
++      <option name="MODULE_MODE" value="false" />
++      <option name="REDIRECT_INPUT" value="false" />
++      <option name="INPUT_FILE" value="" />
++      <method v="2" />
++    </configuration>
++    <recent_temporary>
++      <list>
++        <item itemvalue="Python.main" />
++      </list>
++    </recent_temporary>
++  </component>
+   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+   <component name="TaskManager">
+     <task active="true" id="Default" summary="Default task">
+@@ -39,7 +204,52 @@
+       <option name="presentableId" value="Default" />
+       <updated>1687244460991</updated>
+       <workItem from="1687244462582" duration="156000" />
++      <workItem from="1687368189403" duration="77000" />
++      <workItem from="1687368692377" duration="54000" />
++      <workItem from="1687507034450" duration="1026000" />
++      <workItem from="1687684431162" duration="24000" />
++      <workItem from="1687722190098" duration="611000" />
++      <workItem from="1687805954210" duration="2824000" />
++      <workItem from="1687962107998" duration="5000" />
++      <workItem from="1688118523839" duration="213000" />
++      <workItem from="1688497932481" duration="801000" />
++    </task>
++    <task id="LOCAL-00001" summary="initlized Measurement calculator">
++      <created>1687808382857</created>
++      <option name="number" value="00001" />
++      <option name="presentableId" value="LOCAL-00001" />
++      <option name="project" value="LOCAL" />
++      <updated>1687808382857</updated>
++    </task>
++    <task id="LOCAL-00002" summary="added betweenness centrality">
++      <created>1687808413083</created>
++      <option name="number" value="00002" />
++      <option name="presentableId" value="LOCAL-00002" />
++      <option name="project" value="LOCAL" />
++      <updated>1687808413083</updated>
++    </task>
++    <task id="LOCAL-00003" summary="added closeness centrality">
++      <created>1687808435752</created>
++      <option name="number" value="00003" />
++      <option name="presentableId" value="LOCAL-00003" />
++      <option name="project" value="LOCAL" />
++      <updated>1687808435752</updated>
++    </task>
++    <task id="LOCAL-00004" summary="added useful measurements">
++      <created>1687808464231</created>
++      <option name="number" value="00004" />
++      <option name="presentableId" value="LOCAL-00004" />
++      <option name="project" value="LOCAL" />
++      <updated>1687808464231</updated>
++    </task>
++    <task id="LOCAL-00005" summary="used measurement calculator in main file and respond to user request.">
++      <created>1687808592559</created>
++      <option name="number" value="00005" />
++      <option name="presentableId" value="LOCAL-00005" />
++      <option name="project" value="LOCAL" />
++      <updated>1687808592559</updated>
+     </task>
++    <option name="localTasksCounter" value="6" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+@@ -56,4 +266,15 @@
+       </map>
+     </option>
+   </component>
++  <component name="VcsManagerConfiguration">
++    <MESSAGE value="initlized Measurement calculator" />
++    <MESSAGE value="added betweenness centrality" />
++    <MESSAGE value="added closeness centrality" />
++    <MESSAGE value="added useful measurements" />
++    <MESSAGE value="used measurement calculator in main file and respond to user request." />
++    <option name="LAST_COMMIT_MESSAGE" value="used measurement calculator in main file and respond to user request." />
++  </component>
++  <component name="com.intellij.coverage.CoverageDataManagerImpl">
++    <SUITE FILE_PATH="coverage/graphanalyzer$main.coverage" NAME="main Coverage Results" MODIFIED="1688118592579" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/MamadMiner" />
++  </component>
+ </project>
+\ No newline at end of file
+Index: .idea/graphanalyzer.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<module type=\"PYTHON_MODULE\" version=\"4\">\n  <component name=\"NewModuleRootManager\">\n    <content url=\"file://$MODULE_DIR$\" />\n    <orderEntry type=\"inheritedJdk\" />\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\n  </component>\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/graphanalyzer.iml b/.idea/graphanalyzer.iml
+--- a/.idea/graphanalyzer.iml	(revision 6a3354829f04e400a49c9e72a27ea5e84a8204b4)
++++ b/.idea/graphanalyzer.iml	(date 1687507058437)
+@@ -2,7 +2,7 @@
+ <module type="PYTHON_MODULE" version="4">
+   <component name="NewModuleRootManager">
+     <content url="file://$MODULE_DIR$" />
+-    <orderEntry type="inheritedJdk" />
++    <orderEntry type="jdk" jdkName="lab_env" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
+   </component>
+ </module>
+\ No newline at end of file
+Index: MamadMiner/app/analyser.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\n\nimport git2net\nimport pathpy as pp\nfrom datetime import datetime\n\ndef make_coediting_net(db_filename):\n    t, node_info, edge_info = git2net.get_bipartite_network(db_filename)\n    n = pp.Network.from_temporal_network(t)\n    return (n, node_info, edge_info)\n\n\ndef get_graph(sqlite_db_file):\n    t, node_info, edge_info = git2net.get_bipartite_network(sqlite_db_file)\n    n = pp.Network.from_temporal_network(t)\n    return n, node_info, edge_info\n\ndef get_graph(sqlite_db_file, from_date):\n    \n    t, node_info, edge_info = git2net.get_bipartite_network(sqlite_db_file, time_from= from_date)\n    n = pp.Network.from_temporal_network(t)\n    return n, node_info, edge_info\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/MamadMiner/app/analyser.py b/MamadMiner/app/analyser.py
+--- a/MamadMiner/app/analyser.py	(revision 6a3354829f04e400a49c9e72a27ea5e84a8204b4)
++++ b/MamadMiner/app/analyser.py	(date 1687807466220)
+@@ -3,6 +3,7 @@
+ import git2net
+ import pathpy as pp
+ from datetime import datetime
++import networkx as nx
+ 
+ def make_coediting_net(db_filename):
+     t, node_info, edge_info = git2net.get_bipartite_network(db_filename)
+@@ -19,4 +20,4 @@
+     
+     t, node_info, edge_info = git2net.get_bipartite_network(sqlite_db_file, time_from= from_date)
+     n = pp.Network.from_temporal_network(t)
+-    return n, node_info, edge_info
++    return n, node_info, edge_info
+\ No newline at end of file
