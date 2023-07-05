@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from MamadMiner.app.DataPreprocessor import DataPreprocessor
+from app.DataPreprocessor import DataPreprocessor
 from app.MeasurementsCalculator import MeasurementsCalculator
 from app.analyser import get_graph
 from app.cloner import clone_and_mine
@@ -9,9 +9,10 @@ from flask import Flask, jsonify, request
 import json
 from flask import Flask, request, Response
 import json
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app, resources={r"/mine_repo": {"origins": "http://localhost:3000"}})
 nodes = []
 edges = []
 preprocessor = DataPreprocessor()
