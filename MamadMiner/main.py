@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from app.DataPreprocessor import DataPreprocessor
 from app.MeasurementsCalculator import MeasurementsCalculator
 from app.analyser import get_graph
@@ -61,20 +60,20 @@ def mine_repo_with_date():
 
     calculator = MeasurementsCalculator(nodes, edges)
     author_degree_centrality, file_degree_centrality = calculator.compute_degree_centrality()
-    # betweenness_centrality = calculator.compute_betweenness_centrality()
-    # closeness_centrality = calculator.compute_closeness_centrality()
+    betweenness_centrality = calculator.compute_betweenness_centrality()
+    closeness_centrality = calculator.compute_closeness_centrality()
     # eigenvector_centrality = calculator.compute_eigenvector_centrality()
-    # page_rank = calculator.compute_page_rank()
-    # clustering_coefficient = calculator.compute_clustering_coefficient()
+    page_rank = calculator.compute_page_rank()
+    clustering_coefficient = calculator.compute_clustering_coefficient()
 
     measurements = {
         "author_degree_centrality": author_degree_centrality,
         "file_degree_centrality": file_degree_centrality,
-        # "betweenness_centrality": betweenness_centrality,
-        # "closeness_centrality": closeness_centrality,
+        "betweenness_centrality": betweenness_centrality,
+        "closeness_centrality": closeness_centrality,
         # "eigenvector_centrality": eigenvector_centrality,
-        # "page_rank": page_rank,
-        # "clustering_coefficient": clustering_coefficient
+        "page_rank": page_rank,
+        "clustering_coefficient": clustering_coefficient
     }
 
     data = {
