@@ -1,9 +1,4 @@
 
-
-
-
-
-
 class DataPreprocessor:
     def sort(self, nodes, edges):
         # Sort nodes based on 'outweight'
