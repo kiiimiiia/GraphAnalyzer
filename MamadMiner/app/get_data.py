@@ -1,9 +1,9 @@
-from .DataPreprocessor import DataPreprocessor
-from .MeasurementsCalculator import MeasurementsCalculator
+from .data_processor import data_processor
+from .measurements_calculator import measurements_calculator
 from .analyser import get_graph
 import os
 
-preprocessor = DataPreprocessor()
+preprocessor = data_processor()
 
 
 def get_data(sqlite_db_file, from_date=None):
@@ -11,7 +11,7 @@ def get_data(sqlite_db_file, from_date=None):
     raw_nodes = n.nodes
     raw_edges = {k[1]: {'weight': v['weight'], 'connected_to': k[0]} for k, v in n.edges.items()}
     nodes, edges = preprocessor.sort(raw_nodes, raw_edges)
-    calculator = MeasurementsCalculator(nodes, edges)
+    calculator = measurements_calculator(nodes, edges)
     
     author_degree_centrality = calculator.compute_author_degree_centrality()
     author_degree_centrality_sorted = dict(sorted(author_degree_centrality.items(), key=lambda item: item[1], reverse=True))

@@ -1,6 +1,6 @@
 import networkx as nx
 
-class MeasurementsCalculator:
+class measurements_calculator:
     def __init__(self, nodes, edges):
         self.nodes = nodes
         self.edges = edges
