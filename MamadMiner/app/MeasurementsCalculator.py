@@ -17,13 +17,18 @@ class MeasurementsCalculator:
         # number of edges connected to a node
         # tell you which nodes have the most connections.
         degree_centrality = nx.degree_centrality(self.graph)
-        author_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, int)}
-        file_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, str)}
-        return author_degree_centrality, file_degree_centrality
+        return degree_centrality
 
-    def compute_eigenvector_centrality(self): # influence of a node in a network
-        eigenvector_centrality = nx.eigenvector_centrality(self.graph)
-        return eigenvector_centrality
+    def compute_author_degree_centrality(self):
+        degree_centrality = self.compute_degree_centrality()
+        author_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, int)}
+        return author_degree_centrality
+
+    def compute_file_degree_centrality(self):
+        degree_centrality = self.compute_degree_centrality()
+        file_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, str)}
+        return file_degree_centrality
+
 
     def compute_page_rank(self): # importance of each node
         page_rank = nx.pagerank(self.graph)
