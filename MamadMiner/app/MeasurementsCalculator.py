@@ -14,27 +14,17 @@ class MeasurementsCalculator:
         return G
 
     def compute_degree_centrality(self):
+        # number of edges connected to a node
+        # tell you which nodes have the most connections.
         degree_centrality = nx.degree_centrality(self.graph)
         author_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, int)}
         file_degree_centrality = {node: centrality for node, centrality in degree_centrality.items() if isinstance(node, str)}
         return author_degree_centrality, file_degree_centrality
 
-    def compute_betweenness_centrality(self):
-        betweenness_centrality = nx.betweenness_centrality(self.graph)
-        return betweenness_centrality
-
-    def compute_closeness_centrality(self):
-        closeness_centrality = nx.closeness_centrality(self.graph)
-        return closeness_centrality
-
-    def compute_eigenvector_centrality(self):
+    def compute_eigenvector_centrality(self): # influence of a node in a network
         eigenvector_centrality = nx.eigenvector_centrality(self.graph)
         return eigenvector_centrality
 
-    def compute_page_rank(self):
+    def compute_page_rank(self): # importance of each node
         page_rank = nx.pagerank(self.graph)
         return page_rank
-
-    def compute_clustering_coefficient(self):
-        clustering_coefficient = nx.clustering(self.graph)
-        return clustering_coefficient
