@@ -3,19 +3,13 @@
 ## Overview
 This project aims to provide an analytical overview of Git repositories. Metrics such as author degree centrality, file degree centrality, and PageRank are computed to offer insights into the development and collaboration within a codebase.
 
-## API Documentation
-https://documenter.getpostman.com/view/21593327/2s9Y5YRhfB
-#### API Endpoints
-- **POST `/mine_repo`**: Accepts a Git repository URL, clones it, and returns various metrics.
-- **POST `/mine_repo_with_date`**: Similar to `/mine_repo` but allows for a date range specification.
-
 
 ## Getting Started
 ### Prerequisites
 
 - Python 3.x
 - pip
-- 
+
 ### Installation
 
 Follow these steps to get the project up and running on your local machine.
@@ -27,7 +21,7 @@ Follow these steps to get the project up and running on your local machine.
     
 2. **Navigate into the project directory.**
     ```bash
-    cd graphanalyzer
+    cd graphanalyzer/
     ```
    
 3. **Install dependencies.**
@@ -48,28 +42,31 @@ Now, you should be able to access the application on `http://127.0.0.1:5000/`.
 
 - **Backend**: Typically takes around 2 minutes to analyze a medium-sized repository.
 
+
+#### API Endpoints
+- **POST `/mine_repo`**: Accepts a Git repository URL, clones it, and returns various metrics.
+- **POST `/mine_repo_with_date`**: Similar to `/mine_repo` but allows for a date range specification.
+
 ## API Documentation
 
 This API documentation provides details on how to use the two main endpoints for cloning and analyzing Git repositories.
+https://documenter.getpostman.com/view/21593327/2s9Y5YRhfB
 
 ## Future Work
 
 - Backend: Add real-time analysis and more metrics.
 - Frontend: (To be added)
 
-## License
-
-MIT License
-
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests to us.
-
 ## Authors
 
-- Your Name
+- Mamad
+- Kimia
+- Anatol
+- Lisi
+- Nada
 
-## Acknowledgments
+## Links
 
-- git2net official documentation
-- NetworkX documentation
+- [git2net documentation](https://github.com/gotec/git2net)
+- [NetworkX documentation](https://networkx.org/)
+
