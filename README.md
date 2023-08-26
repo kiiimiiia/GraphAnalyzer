@@ -3,6 +3,7 @@
 ## Overview
 This project aims to provide an analytical overview of Git repositories. Metrics such as author degree centrality, file degree centrality, and PageRank are computed to offer insights into the development and collaboration within a codebase.
 
+[Project Overleaf Report Link](https://www.overleaf.com/read/tgvbskqdyjbj)
 
 ## Getting Started
 ### Prerequisites
