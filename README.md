@@ -43,7 +43,7 @@ Now, you should be able to access the application on `http://127.0.0.1:5000/`.
 - **Backend**: Typically takes around 2 minutes to analyze a medium-sized repository.
 
 
-#### API Endpoints
+## API Endpoints
 - **POST `/mine_repo`**: Accepts a Git repository URL, clones it, and returns various metrics.
 - **POST `/mine_repo_with_date`**: Similar to `/mine_repo` but allows for a date range specification.
 
