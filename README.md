@@ -53,6 +53,9 @@ Now, you should be able to access the application on `http://127.0.0.1:5000/`.
 This API documentation provides details on how to use the two main endpoints for cloning and analyzing Git repositories.
 https://documenter.getpostman.com/view/21593327/2s9Y5YRhfB
 
+## Backend Architecture
+<img src="UML/packages_app.png" width="400">
+
 ## Future Work
 
 - Backend: Add real-time analysis and more metrics.
@@ -60,11 +63,11 @@ https://documenter.getpostman.com/view/21593327/2s9Y5YRhfB
 
 ## Authors
 
-- Mamad
-- Kimia
-- Anatol
-- Lisi
-- Nada
+- [Mamad](mailto:seyedmohammad.farrahi@stud-mail.uni-wuerzburg.de)
+- [Nada](mailto:nada.aboudeshish@stud-mail.uni-wuerzburg.de)
+- [Kimia](mailto:mk.ghassemi97@gmail.com) 
+- [Anatol](mailto:anatol.wegner@uni-wuerzburg.de)
+- [Lisi](mailto:maryam.ghassemi@stud-mail.uni-wuerzburg.de)
 
 ## Links
 
