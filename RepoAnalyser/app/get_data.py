@@ -1,9 +1,9 @@
-from .data_processor import data_processor
+from .network_sorter import network_sorter
 from .measurements_calculator import measurements_calculator
 from .analyser import get_graph
 import os
 
-preprocessor = data_processor()
+preprocessor = network_sorter()
 
 
 def get_data(sqlite_db_file, from_date=None):
