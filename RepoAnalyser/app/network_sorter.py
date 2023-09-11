@@ -1,5 +1,5 @@
 
-class data_processor:
+class network_sorter:
     def sort(self, nodes, edges):
         # Sort nodes based on 'outweight'
         sorted_nodes = {k: v for k, v in sorted(nodes.items(), key=lambda item: item[1]['outweight'], reverse=True)}
