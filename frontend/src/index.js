@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 import writerImg from './images/writer2.png';
 import documentImg from './images/file.png';
 import mockData from './data-mock/no-date.json'; 
-
+import { createRoot } from 'react-dom/client';
 
 function App() {
   const graphRef = useRef(null);
@@ -176,114 +176,68 @@ function App() {
 
   const [data, setData] = useState(_data);
 
-  const sendRequest = async (event) => {
+  const processData = (data) => {
+    
+    // Convert nodes
+    const nodesArray = Object.entries(data.nodes).map(([key, value]) => {
+        const node = { id: key, title: key, label: key, shape: "image", size: 20, cost: "$1000" };
+        if (isNaN(key)) {
+            node.color = "purple";
+            node.image = documentImg;
+        } else {
+            node.color = "blue";
+            node.image = writerImg;
+        }
+        return node;
+    });
+
+    // Convert edges
+    const edgesArray = Object.entries(data.edges)
+        .map(([key, value]) => {
+            const { weight, connected_to } = value;
+            return {
+                from: key.split(':')[0].trim(),
+                to: connected_to,
+                color: weight > 5 ? "red" : "purple"
+            };
+        })
+        .filter(edge => edge.from !== '');
+
+    return {
+        nodes: nodesArray,
+        edges: edgesArray
+    };
+};
+
+
+const sendRequest = async (event) => {
     event.preventDefault();
     const response = await fetch('http://127.0.0.1:5000/mine_repo', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'url': url,
-      },
-      body: JSON.stringify({
-        url: url,
-      }),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'url': url,
+        },
+        body: JSON.stringify({
+            url: url,
+        }),
     });
+
     const data = await response.json();
     if (response.ok) {
-      const nodesArray = Object.entries(data.nodes)
-        .map(([key, value]) => {
-          const node = { id: key, ...value };
-          node.icon = isNaN(key) ? 'document' : 'writer';
-          return node;
-        });
-  
-      const authors = nodesArray.filter(node => node.icon === 'writer');
-      const documents = nodesArray.filter(node => node.icon === 'document');
-  
-      const offsetY = 100; // nodes vertically
-  
-      authors.forEach((author, index) => {
-        author.y = index * offsetY;
-      });
-  
-      documents.forEach((document, index) => {
-        document.y = authors.length * offsetY + (index + 1) * offsetY;
-      });
-  
-  
-      const edgesArray = Object.entries(data.edges)
-      .map(([key, value]) => {
-        const [name, properties] = key.split(':').map((str) => str.trim());
-        const { weight, connected_to, source, target } = value;
-        return {
-          from: name || '',
-          to: connected_to || '',
-          color: weight > 5 ? "red" : "purple", // adjust this logic based on your needs
-        };
-      })
-      .filter((edge) => edge.from !== '');
-      
-      const extractedEdgesArray = edgesArray.map(({ from, to, color }) => ({ from, to, color }));
-      
-    
-      const convertedData = {
-        nodes: [...authors, ...documents],
-        edges: extractedEdgesArray,
-      };
-      
-      setDatas(convertedData);
-    
-        
+        const convertedData = processData(data);
+        setDatas(convertedData);
     } else {
-      console.error('Failed to fetch graph data:', data);
+        console.error('Failed to fetch graph data:', data);
     }
-  };
+};
 
-  const loadMockData = () => {
-      const nodesArray = Object.entries(mockData.nodes)
-      .map(([key, value]) => {
-        const node = { id: key, ...value };
-        node.icon = isNaN(key) ? 'document' : 'writer';
-        return node;
-      });
+const loadMockData = () => {
+    const convertedData = processData(mockData);
+    console.log(convertedData);
+    setData(convertedData);
+};
 
-    const authors = nodesArray.filter(node => node.icon === 'writer');
-    const documents = nodesArray.filter(node => node.icon === 'document');
-
-    const offsetY = 100; // nodes vertically
-
-    authors.forEach((author, index) => {
-      author.y = index * offsetY;
-    });
-
-    documents.forEach((document, index) => {
-      document.y = authors.length * offsetY + (index + 1) * offsetY;
-    });
-
-
-    const edgesArray = Object.entries(mockData.edges)
-    .map(([key, value]) => {
-      const [name, properties] = key.split(':').map((str) => str.trim());
-      const { weight, connected_to, source, target } = value;
-      return {
-        from: name || '',
-        to: connected_to || '',
-        color: weight > 5 ? "red" : "purple", // adjust this logic based on your needs
-      };
-    })
-    .filter((edge) => edge.from !== '');
-    
-    const extractedEdgesArray = edgesArray.map(({ from, to, color }) => ({ from, to, color }));
-    
-
-    const convertedData = {
-      nodes: [...authors, ...documents],
-      edges: extractedEdgesArray,
-    };
-    
-    setDatas(convertedData);
-
-  };
   
   // const sendRequest = async (event) => {
   //   event.preventDefault();
@@ -436,95 +390,99 @@ function App() {
     }
   };
 
+
+  const handleAfterDrawing = (network) => {
+    console.log(data);
+    network.on("afterDrawing", (ctx) => {
+        data.nodes.forEach((node) => {
+            const iconImg = new Image();
+            iconImg.src = "https://www.iconarchive.com/download/i22783/kyo-tux/phuzion/Sign-Info.ico";
+            const nodeId = node.id;
+            const nodePosition = network.getPositions([nodeId])[nodeId];
+            const nodeSize = 20;
+            var setVal = sessionStorage.getItem("set");
+
+            if (setVal === "yes") {
+                console.log(setVal);
+                ctx.font = "14px Arial";
+                ctx.fillStyle = "#000000";
+                ctx.textAlign = "center";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+                ctx.shadowBlur = 5;
+                ctx.fillStyle = "#ffcc00";
+                ctx.fillRect(
+                    nodePosition.x + nodeSize + 2,
+                    nodePosition.y + nodeSize - 20,
+                    50,
+                    20
+                );
+                ctx.fillText(
+                    node.label,
+                    nodePosition.x,
+                    nodePosition.y + nodeSize + 20
+                );
+                ctx.font = "12px Arial";
+                ctx.color = "black";
+                ctx.fillStyle = "black";
+                ctx.textAlign = "left";
+                ctx.fillText(
+                    node.cost,
+                    nodePosition.x + nodeSize + 5,
+                    nodePosition.y + nodeSize - 5
+                );
+            } else if (setVal === "no") {
+                console.log(setVal);
+                const iconWidth = 20;
+                const iconHeight = 16;
+                iconImg.src = "https://www.iconarchive.com/download/i22783/kyo-tux/phuzion/Sign-Info.ico";
+                ctx.font = "14px Arial";
+                ctx.fillStyle = "#000000";
+                ctx.textAlign = "center";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+                ctx.shadowBlur = 5;
+                ctx.fillStyle = "#ffcc00";
+                ctx.drawImage(
+                    iconImg,
+                    nodePosition.x + nodeSize + 5,
+                    nodePosition.y + nodeSize + 5,
+                    iconWidth,
+                    iconHeight
+                );
+                iconImg.addEventListener("mouseover", myFunction, false);
+            }
+        });
+    });
+}
+
   return (
     <> 
-    <div>
-        <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
-        <button type="button" onClick={loadMockData}>Load Mock Data</button>
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="Enter URL"
-            style={{ marginRight: '10px' }}
-          />
-          <button type="submit">Get the Network</button>
-        </form>
+      <div>
+          <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
+              <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="Enter URL"
+                  style={{ marginRight: '10px' }}
+              />
+              <button type="submit">Get the Network</button>
+              <button type="button" onClick={loadMockData} style={{ marginLeft: '10px' }}>Load Mock Data</button>
+          </form>
       </div>
       <div>
         <Grid>
           <Grid item md={7} style={{ display: "flex" }}>
-            <Network
-              graph={data}
-              ref={graphRef}
-              options={options}
-              events={{
+          <Network
+            graph={data}
+            ref={graphRef}
+            options={options}
+            events={{
                 click: handleNodeClick
-              }}
-              getNetwork={(network) => {
-                network.on("afterDrawing", (ctx) => {
-                  data.nodes.forEach((node) => {
-                    const iconImg = new Image();
-                    iconImg.src =
-                      "https://www.iconarchive.com/download/i22783/kyo-tux/phuzion/Sign-Info.ico";
-                    const nodeId = node.id;
-                    const nodePosition = network.getPositions([nodeId])[nodeId];
-                    const nodeSize = 20;
-                    var setVal = sessionStorage.getItem("set");
-                    if (setVal === "yes") {
-                      console.log(setVal);
-                      ctx.font = "14px Arial";
-                      ctx.fillStyle = "#000000";
-                      ctx.textAlign = "center";
-                      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-                      ctx.shadowBlur = 5;
-                      ctx.fillStyle = "#ffcc00";
-                      ctx.fillRect(
-                        nodePosition.x + nodeSize + 2,
-                        nodePosition.y + nodeSize - 20,
-                        50,
-                        20
-                      );
-                      ctx.fillText(
-                        node.label,
-                        nodePosition.x,
-                        nodePosition.y + nodeSize + 20
-                      );
-                      ctx.font = "12px Arial";
-                      ctx.color = "black";
-                      ctx.fillStyle = "black";
-                      ctx.textAlign = "left";
-                      ctx.fillText(
-                        node.cost,
-                        nodePosition.x + nodeSize + 5,
-                        nodePosition.y + nodeSize - 5
-                      );
-                    } else if (setVal === "no") {
-                      console.log(setVal);
-                      const iconWidth = 20; // width of the icon image
-                      const iconHeight = 16;
-                      iconImg.src =
-                        "https://www.iconarchive.com/download/i22783/kyo-tux/phuzion/Sign-Info.ico";
-                      ctx.font = "14px Arial";
-                      ctx.fillStyle = "#000000";
-                      ctx.textAlign = "center";
-                      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-                      ctx.shadowBlur = 5;
-                      ctx.fillStyle = "#ffcc00";
-                      ctx.drawImage(
-                        iconImg,
-                        nodePosition.x + nodeSize + 5,
-                        nodePosition.y + nodeSize + 5,
-                        iconWidth,
-                        iconHeight
-                      );
-                      iconImg.addEventListener("mouseover", myFunction, "false");
-                    }
-                  });
-                });
-              }}
-              style={{ display: "flex", height: "40rem" }}
-            />
+            }}
+            getNetwork={handleAfterDrawing}
+            style={{ display: "flex", height: "40rem" }}
+        />
+
           </Grid>
           <Grid item md={3}>
             <div>
@@ -547,60 +505,8 @@ function App() {
                   fontFamily: "Verdana"
                 }}
               >
-                <b>{datas}</b>
               </p>
             </div>
-          </Grid>
-          <Grid
-            item
-            md={12}
-            style={{ display: "flex", justifyContent: "space-around" }}
-          >
-            <Button
-              variant="contained"
-              onClick={(e) => {
-                sessionStorage.setItem("set", "yes");
-                graphRef.current.updateGraph();
-              }}
-            >
-              Price Tagger
-            </Button>
-            <Button
-              variant="contained"
-              onClick={(e) => {
-                sessionStorage.setItem("set", "no");
-                graphRef.current.updateGraph();
-              }}
-            >
-              Cura
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => {
-                console.log(data, "hujhgh");
-                console.log(JSON.stringify(data), "########");
-                const jsonString = JSON.stringify(data, null, 2); // Using null, 2 for pretty formatting
-
-                // Create a Blob from the JSON string
-                const blob = new Blob([jsonString], { type: "application/json" });
-
-                // Create a URL for the Blob
-                const url = URL.createObjectURL(blob);
-
-                // Create a link element to download the JSON file
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = "data.json";
-                document.body.appendChild(link);
-                link.click();
-
-                // Clean up by revoking the URL and removing the link element
-                URL.revokeObjectURL(url);
-                document.body.removeChild(link);
-              }}
-            >
-              Fetch updated data
-            </Button>
           </Grid>
         </Grid>
       </div>
@@ -609,4 +515,7 @@ function App() {
 }
 
 const rootElement = document.getElementById("root");
-ReactDOM.render(<App />, rootElement);
+const root = createRoot(rootElement);
+root.render(<App />);
+
+
