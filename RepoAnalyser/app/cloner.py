@@ -37,3 +37,17 @@ def disambiguate_aliases(db_filename):
 
     Counter(['{} --- {}, <{}>'.format(row.author_id, row.author_name, row.author_email)
              for idx, row in authors.iterrows()])
+
+
+def get_first_last_commit_dates(repo_folder):
+    # Create a Repo object for the already cloned repository
+    repo = Repo(repo_folder)
+
+    # Get a list of all commits on the 'master' branch (you can change this to 'main' if needed)
+    commits = list(repo.iter_commits('main'))
+
+    # Return the date of the first and last commit
+    first_commit_date = commits[-1].committed_datetime.strftime('%Y-%m-%d')
+    last_commit_date = commits[0].committed_datetime.strftime('%Y-%m-%d')
+
+    return first_commit_date, last_commit_date
