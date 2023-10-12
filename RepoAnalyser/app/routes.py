@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, blueprints, jsonify, request, Response
 from .get_data import get_data
-from .cloner import clone_and_mine
+from .cloner import clone_and_mine, get_first_last_commit_dates
 from .helpers import parse_date, get_db_filename
 import os
 import json
@@ -10,20 +10,26 @@ blueprint = Blueprint('routes', __name__)
 
 @blueprint.route('/mine_repo', methods=['POST','GET'])
 def mine_repo():
-    repo_url = request.headers.get('url') # Get URL from the POST request headers
-    date = request.headers.get('date') 
-    sqlite_db_file = 'data/' + repo_url.split('/')[-1] + '.db'
+    repo_url = request.headers.get('url')
+    date = request.headers.get('date')
+    repo_folder_name = repo_url.split('/')[-1].replace('.git', '')
+    sqlite_db_file = 'data/' + repo_folder_name + '.db'
 
     if not os.path.isfile(sqlite_db_file):
         sqlite_db_file = clone_and_mine(repo_url)
 
     nodes, edges, measurements = get_data(sqlite_db_file, date)
 
+    repo_local_path = os.path.join(os.getcwd(), repo_folder_name)
+    first_commit_date, last_commit_date = get_first_last_commit_dates(repo_local_path)
+
     data = {
         "message": "Repo mined successfully",
         "nodes": nodes,
         "edges": edges,
-        "measurements": measurements
+        "measurements": measurements,
+        "first_commit_date": first_commit_date,
+        "last_commit_date": last_commit_date
     }
     
     json_data = json.dumps(data)
@@ -46,6 +52,10 @@ def mine_repo_with_date():
 
     sqlite_db_file = get_db_filename(repo_url)
 
+    repo_folder_name = repo_url.split('/')[-1].replace('.git', '')
+    repo_local_path = os.path.join(os.getcwd(), repo_folder_name)
+    first_commit_date, last_commit_date = get_first_last_commit_dates(repo_local_path)
+
     # Clone and mine repository if it hasn't been processed yet
     if not os.path.isfile(sqlite_db_file):
         sqlite_db_file = clone_and_mine(repo_url)
@@ -59,7 +69,9 @@ def mine_repo_with_date():
         "message": "Repo mined successfully",
         "nodes": nodes,
         "edges": edges,
-        "measurements": measurements
+        "measurements": measurements,
+        "first_commit_date": first_commit_date,
+        "last_commit_date": last_commit_date
     }
 
     json_data = json.dumps(data)
