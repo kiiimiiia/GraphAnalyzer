@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ForceGraph2D } from 'react-force-graph';
 import writerIcon from '../images/writer.png'; // Import the writer icon
 import documentIcon from '../images/document.png'; // Import the document icon
+import mockData from '../data-mock/no-date.json'; 
 
 const initialData = {
   nodes: [
@@ -75,6 +76,30 @@ export const ForceGraphComponent = () => {
       
   };
 
+  const loadMockData = () => {
+    const nodesArray = Object.entries(mockData.nodes)
+      .map(([key, value]) => {
+        const node = { id: key, ...value };
+        node.icon = isNaN(key) ? 'document' : 'writer';
+        return node;
+      });
+
+    const edgesArray = Object.entries(mockData.edges)
+      .map(([key, value]) => {
+        const [source, target] = key.split(':').map((id) => id.trim());
+        return { source: source || '', target: target || '', ...value };
+      })
+      .filter((edge) => edge.source !== '' && edge.target !== '');
+
+
+    const convertedData = {
+      nodes: nodesArray,
+      links: edgesArray,
+    };
+    setGraphData(convertedData);
+
+  };
+
   const nodeCanvasObject = (node, ctx, globalScale) => {
     const ICON_SIZE = 36;
     const textWidth = ctx.measureText(node.name).width;
@@ -126,6 +151,8 @@ export const ForceGraphComponent = () => {
   return (
     <div>
       <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
+        <button type="submit">Get the Network</button>
+        <button type="button" onClick={loadMockData}>Load Mock Data</button>
         <input
           type="text"
           value={url}
