@@ -80,11 +80,11 @@ export const ForceGraphComponentWithDate = () => {
       
   };
   
-  const margin = 10; // Adjust this value to control the margin
-const nodeCanvasObject = (node, ctx, globalScale) => {
+  //const margin = 10; // Adjust this value to control the margin
+  const nodeCanvasObject = (node, ctx, globalScale) => {
   const ICON_SIZE = 36;
-    const textWidth = ctx.measureText(node.name).width;
-    const radius = Math.max(ICON_SIZE, textWidth) / 2 + 4;
+  const textWidth = ctx.measureText(node.name).width;
+  const radius = Math.max(ICON_SIZE, textWidth) / 2 + 4;
 
     ctx.beginPath();
     ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
