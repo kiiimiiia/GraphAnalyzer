@@ -8,7 +8,6 @@ import './App.css'
 function App() {
   const [currentPage, setCurrentPage] = useState(true);
   const [showRepoChartPage, setShowRepoChartPage] = useState(false); // Initial value set to false to not show the RepoChart initially
-
   if (showRepoChartPage) {
       return (
           <div className="App">
