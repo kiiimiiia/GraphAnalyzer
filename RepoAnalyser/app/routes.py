@@ -39,7 +39,6 @@ def mine_repo():
 @blueprint.route('/mine_repo_with_date', methods=['POST'])
 def mine_repo_with_date():
     repo_url = request.headers.get('url')
-
     from_date_str = request.headers.get('fromdate')
     to_date_str = request.headers.get('todate')
 

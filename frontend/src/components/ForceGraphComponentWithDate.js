@@ -1,9 +1,50 @@
-import React, { useState } from 'react';
-import { ForceGraph2D,  } from 'react-force-graph';
+import React, { useRef, useState } from 'react';
+import Network from "react-vis-network-graph";
+import writerImg from '../images/writer2.png';
+import documentImg from '../images/file.png';
 import writerIcon from '../images/author.png'; // Import the writer icon
 import documentIcon from '../images/code.png'; // Import the document icon
+import { Grid } from '@mui/material';
 
-
+const options = {
+  interaction: {
+    selectable: true,
+    hover: true
+  },
+  manipulation: {
+    enabled: true,
+    initiallyActive: true,
+    addNode: false,
+    addEdge: false,
+    deleteNode: true,
+    deleteEdge: true,
+    shapeProperties: {
+      borderDashes: false,
+      useImageSize: false,
+      useBorderWithImage: false
+    },
+    controlNodeStyle: {
+      shape: "dot",
+      size: 6,
+      color: {
+        background: "#ff0000",
+        border: "#3c3c3c",
+        highlight: {
+          background: "#07f968",
+          border: "#3c3c3c"
+        },
+        borderWidth: 2,
+        borderWidthSelected: 2
+      }
+    },
+    height: "100%",
+    color: "green",
+    hover: "true",
+    nodes: {
+      size: 20
+    }
+  }
+};
 
 const initialData = {
   nodes: [
@@ -33,19 +74,23 @@ const initialData = {
 };
 
 export const ForceGraphComponentWithDate = () => {
+  const graphRef = useRef(null);
   const [graphData, setGraphData] = useState(initialData);
   const [url, setUrl] = useState('');
-  const [date, setDate] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   const sendRequest = async (event) => {
     event.preventDefault();
-    const dateToBeSent = date.replaceAll('-', ', ')
+    const fromDateToBeSent = fromDate.replaceAll('-', ', ')
+    const toDateToBeSent = toDate.replaceAll('-', ', ')
     const response = await fetch('http://127.0.0.1:5000/mine_repo_with_date', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'url': url,
-        'from-date': dateToBeSent
+        'fromdate': fromDateToBeSent,
+        'todate': toDateToBeSent
       },
       body: JSON.stringify({
         url: url,
@@ -129,10 +174,118 @@ export const ForceGraphComponentWithDate = () => {
 };
 
 
+const processData = (data) => {
+  // Convert nodes
+  const nodesArray = Object.entries(data.nodes).map(([key, value]) => {
+      const node = { id: key, title: key, label: key, shape: "image", size: 20, cost: "$1000" };
+      if (isNaN(key)) {
+          node.color = "purple";
+          node.image = documentImg;
+      } else {
+          node.color = "blue";
+          node.image = writerImg;
+      }
+      return node;
+  });
+
+  // Convert edges
+  const edgesArray = Object.entries(data.edges)
+      .map(([key, value]) => {
+          const { weight, connected_to } = value;
+          return {
+              from: key.split(':')[0].trim(),
+              to: connected_to,
+              color: weight > 5 ? "red" : "purple"
+          };
+      })
+      .filter(edge => edge.from !== '');
+
+  return {
+      nodes: nodesArray,
+      edges: edgesArray
+  };
+};
+
+const loadData = () => {
+  const convertedData = processData(graphData);
+  console.log(convertedData);
+  setGraphData(convertedData);
+};
+
+function myFunction() {
+  // Code for your onclick function goes here
+  console.log("Icon image clicked!");
+}
+
+const handleAfterDrawing = (network) => {
+  network.on("afterDrawing", (ctx) => {
+      graphData.nodes.forEach((node) => {
+          const iconImg = new Image();
+          iconImg.src = "https://www.iconarchive.com/download/i22783/kyo-tux/phuzion/Sign-Info.ico";
+          const nodeId = node.id;
+          const nodePosition = network.getPositions([nodeId])[nodeId];
+          const nodeSize = 20;
+          var setVal = sessionStorage.getItem("set");
+
+          if (setVal === "yes") {
+              console.log(setVal);
+              ctx.font = "14px Arial";
+              ctx.fillStyle = "#000000";
+              ctx.textAlign = "center";
+              ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+              ctx.shadowBlur = 5;
+              ctx.fillStyle = "#ffcc00";
+              ctx.fillRect(
+                  nodePosition.x + nodeSize + 2,
+                  nodePosition.y + nodeSize - 20,
+                  50,
+                  20
+              );
+              ctx.fillText(
+                  node.label,
+                  nodePosition.x,
+                  nodePosition.y + nodeSize + 20
+              );
+              ctx.font = "12px Arial";
+              ctx.color = "black";
+              ctx.fillStyle = "black";
+              ctx.textAlign = "left";
+              ctx.fillText(
+                  node.cost,
+                  nodePosition.x + nodeSize + 5,
+                  nodePosition.y + nodeSize - 5
+              );
+          } else if (setVal === "no") {
+              console.log(setVal);
+              const iconWidth = 20;
+              const iconHeight = 16;
+              iconImg.src = "https://www.iconarchive.com/download/i22783/kyo-tux/phuzion/Sign-Info.ico";
+              ctx.font = "14px Arial";
+              ctx.fillStyle = "#000000";
+              ctx.textAlign = "center";
+              ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+              ctx.shadowBlur = 5;
+              ctx.fillStyle = "#ffcc00";
+              ctx.drawImage(
+                  iconImg,
+                  nodePosition.x + nodeSize + 5,
+                  nodePosition.y + nodeSize + 5,
+                  iconWidth,
+                  iconHeight
+              );
+              iconImg.addEventListener("mouseover", myFunction, false);
+          }
+      });
+  });
+}
+
+
+
   return (
-    <div>
-      <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
-      <div className="url-input-container">
+    <> 
+          <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
+
+<div className="url-input-container">
       <input
           type="text"
           value={url}
@@ -145,66 +298,63 @@ export const ForceGraphComponentWithDate = () => {
        <div className="date-input-container">
         <input
             type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            placeholder="Enter Date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            placeholder="Enter from Date"
             className="custom-date-input"
         />
       </div>
+      <div className="date-input-container">
+        <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            placeholder="Enter to Date"
+            className="custom-date-input"
+        />
+      </div>
+      <button type="submit">Get the Network</button>
+    </form>
+    <div>
 
-        <button type="submit">Get the Network</button>
-      </form>
-      <ForceGraph2D
-      onEngineTick={() => {
-        const nodes = graphData.nodes;
-        // Create a map to store node positions
-        const nodePositions = new Map();
-      
-        // Update positions based on node radii
-        nodes.forEach((node) => {
-          if(!node) return
-          const ICON_SIZE = 36;
-          const radius = ICON_SIZE / 2 + 4;
-          const minDistance = (3 * radius) + 10; // Minimum distance to prevent overlap
-          if (!nodePositions.has(node.id)) {
-            nodePositions.set(node.id, { x: node.x, y: node.y });
-          }
-      
-          // Check for overlap with other nodes
-          for (const otherNode of nodes) {
-            if (node !== otherNode) {
-              const dx = node.x - otherNode.x;
-              const dy = node.y - otherNode.y;
-              const distance = Math.sqrt(dx * dx + dy * dy);
-      
-              if (distance < minDistance) {
-                // Calculate the direction to move the node away from the overlapping node
-                const angle = Math.atan2(dy, dx);
-                const moveX = (minDistance - distance) * Math.cos(angle);
-                const moveY = (minDistance - distance) * Math.sin(angle);
-      
-                // Update the node's position
-                node.x += moveX / 2;
-                node.y += moveY / 2;
-      
-                // Update the other node's position as well
-                const otherNodePosition = nodePositions.get(otherNode.id)
-                if(otherNodePosition){
-                  otherNodePosition.x -= moveX / 2;
-                  otherNodePosition.y -= moveY / 2;}
-              }
-            }
-          }
-        });
-      }}
-        graphData={graphData}
-        nodeAutoColorBy="id"
-        onNodeHover={(node) => (document.body.style.cursor = node ? 'pointer' : null)}
-        onNodeClick={(node) => window.alert(`Clicked node ${node.id}`)}
-        nodeCanvasObject={nodeCanvasObject}
-        
+      <Grid>
+        <Grid item md={7} style={{ display: "flex" }}>
+        <Network
+          graph={graphData}
+          ref={graphRef}
+          options={options}
+          getNetwork={handleAfterDrawing}
+          style={{ display: "flex", height: "40rem" }}
       />
+
+        </Grid>
+        <Grid item md={3}>
+          <div>
+            <p
+              style={{
+                fontSize: "2rem",
+                color: "blue",
+                display: "flex",
+                justifyContent: "center",
+                fontFamily: "Verdana"
+              }}
+            >
+              <b>Graph Analyzer</b>
+            </p>
+            <p
+              style={{
+                fontSize: "1.5rem",
+                display: "flex",
+                justifyContent: "center",
+                fontFamily: "Verdana"
+              }}
+            >
+            </p>
+          </div>
+        </Grid>
+      </Grid>
     </div>
+  </>
   );
 };
 

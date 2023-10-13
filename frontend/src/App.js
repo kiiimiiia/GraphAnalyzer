@@ -3,6 +3,7 @@ import ForceGraphComponent from './components/ForceGraphComponent';
 import { ForceGraphComponentWithDate } from './components/ForceGraphComponentWithDate';
 import RepoChart from './components/chart'; 
 import './App.css'
+import NetworkVisualization from './components/NetworkVisualization';
 
 
 function App() {
@@ -28,7 +29,7 @@ function App() {
           <button onClick={() => setShowRepoChartPage(true)} className='button-toggle'>
               Open RepoChart Page
           </button>
-          {currentPage ? <ForceGraphComponent /> : <ForceGraphComponentWithDate />}
+          {currentPage ? <NetworkVisualization /> : <ForceGraphComponentWithDate />}
       </div>
   );
 }
