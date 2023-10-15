@@ -16,12 +16,9 @@ def clone_and_mine(repo_full_url):
     mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO  # This gives all permissions to all users
     
     if os.path.exists(sqlite_db_file):
-        return sqlite_db_file
         os.chmod(sqlite_db_file, mode)
-        os.remove(sqlite_db_file)
     if os.path.exists(repo_folder):
         os.chmod(repo_folder, mode)
-        shutil.rmtree(repo_folder)
 
     Repo.clone_from(repo_full_url, repo_folder)
 
@@ -37,17 +34,3 @@ def disambiguate_aliases(db_filename):
 
     Counter(['{} --- {}, <{}>'.format(row.author_id, row.author_name, row.author_email)
              for idx, row in authors.iterrows()])
-
-
-def get_first_last_commit_dates(repo_folder):
-    # Create a Repo object for the already cloned repository
-    repo = Repo(repo_folder)
-
-    # Get a list of all commits on the 'master' branch (you can change this to 'main' if needed)
-    commits = list(repo.iter_commits('main'))
-
-    # Return the date of the first and last commit
-    first_commit_date = commits[-1].committed_datetime.strftime('%Y-%m-%d')
-    last_commit_date = commits[0].committed_datetime.strftime('%Y-%m-%d')
-
-    return first_commit_date, last_commit_date
