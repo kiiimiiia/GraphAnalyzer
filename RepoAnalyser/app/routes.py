@@ -1,8 +1,8 @@
 from datetime import datetime
 from flask import Blueprint, blueprints, jsonify, request, Response
-from .get_data import get_data
-from .cloner import clone_and_mine, get_first_last_commit_dates
-from .helpers import parse_date, get_db_filename
+from .get_data import get_author_file_data, get_coediting_network_data, get_first_last_commit_dates
+from .cloner import clone_and_mine
+from .helpers import parse_date, get_folder_name, get_db_filename
 import os
 import json
 
@@ -12,13 +12,13 @@ blueprint = Blueprint('routes', __name__)
 def mine_repo():
     repo_url = request.headers.get('url')
     date = request.headers.get('date')
-    repo_folder_name = repo_url.split('/')[-1].replace('.git', '')
-    sqlite_db_file = 'data/' + repo_folder_name + '.db'
+    repo_folder_name = get_folder_name(repo_url)
+    sqlite_db_file = get_db_filename(repo_folder_name)
 
     if not os.path.isfile(sqlite_db_file):
         sqlite_db_file = clone_and_mine(repo_url)
 
-    nodes, edges, measurements = get_data(sqlite_db_file, date)
+    nodes, edges, measurements = get_author_file_data(sqlite_db_file, date)
 
     repo_local_path = os.path.join(os.getcwd(), repo_folder_name)
     first_commit_date, last_commit_date = get_first_last_commit_dates(repo_local_path)
@@ -50,10 +50,9 @@ def mine_repo_with_date():
     from_date = parse_date(from_date_str)
     to_date = parse_date(to_date_str)
 
-    sqlite_db_file = get_db_filename(repo_url)
-
-    repo_folder_name = repo_url.split('/')[-1].replace('.git', '')
+    repo_folder_name = get_folder_name(repo_url)
     repo_local_path = os.path.join(os.getcwd(), repo_folder_name)
+    sqlite_db_file = get_db_filename(repo_folder_name)
     first_commit_date, last_commit_date = get_first_last_commit_dates(repo_local_path)
 
     # Clone and mine repository if it hasn't been processed yet
@@ -63,7 +62,7 @@ def mine_repo_with_date():
     if not os.path.isfile(sqlite_db_file):
         return jsonify(message="Error processing repo"), 500
 
-    nodes, edges, measurements = get_data(sqlite_db_file, from_date, to_date)
+    nodes, edges, measurements = get_author_file_data(sqlite_db_file, from_date, to_date)
 
     data = {
         "message": "Repo mined successfully",
