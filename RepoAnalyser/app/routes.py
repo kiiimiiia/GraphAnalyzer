@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, blueprints, jsonify, request, Response
-from .get_data import get_author_file_data, get_coediting_network_data, get_first_last_commit_dates, get_coauthership_graph
+from .get_data import get_author_file_data, get_coediting_network_data, get_first_last_commit_dates, get_coauthership_graph, get_line_editing_path_data
 from .cloner import clone_and_mine
 from .helpers import parse_date, get_folder_name, get_db_filename
 import os
@@ -8,7 +8,7 @@ import json
 
 blueprint = Blueprint('routes', __name__)
 
-@blueprint.route('/mine_repo', methods=['POST','GET'])
+@blueprint.route('/mine_repo', methods=['GET'])
 def mine_repo():
     repo_url = request.headers.get('url')
     date = request.headers.get('date')
@@ -36,7 +36,7 @@ def mine_repo():
     return Response(response=json_data, status=200, mimetype='application/json')
 
 
-@blueprint.route('/mine_repo_with_date', methods=['POST'])
+@blueprint.route('/mine_repo_with_date', methods=['GET'])
 def mine_repo_with_date():
     repo_url = request.headers.get('url')
 
@@ -118,6 +118,28 @@ def coauthorship_network():
         "nodes": nodes,
         "edges": edges,
         "measurements": measurements,
+    }
+
+    json_data = json.dumps(data)
+    return Response(response=json_data, status=200, mimetype='application/json')
+
+@blueprint.route('/get_line_editing_paths', methods=['GET'])
+def line_editing_paths():
+    repo_url = request.headers.get('url')
+    file_paths = request.headers.get('file_paths')
+
+    repo_folder_name = get_folder_name(repo_url)
+    sqlite_db_file = get_db_filename(repo_folder_name)
+
+    # Check if SQLite file exists
+    if not os.path.isfile(sqlite_db_file):
+        return jsonify(message="Repo not mined yet. Please mine the repo first."), 404
+
+    dag_data = get_line_editing_path_data(sqlite_db_file, repo_folder_name, ['setup.py'])
+
+    data = {
+        "message": "line editing network fetched successfully",
+        "dag_data": dag_data,
     }
 
     json_data = json.dumps(data)
