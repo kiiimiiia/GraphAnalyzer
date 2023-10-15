@@ -75,3 +75,27 @@ def mine_repo_with_date():
 
     json_data = json.dumps(data)
     return Response(response=json_data, status=200, mimetype='application/json')
+
+
+@blueprint.route('/get_coediting_network', methods=['GET'])
+def coediting_network():
+    repo_url = request.headers.get('url')
+
+    repo_folder_name = get_folder_name(repo_url)
+    sqlite_db_file = get_db_filename(repo_folder_name)
+
+    # Check if SQLite file exists
+    if not os.path.isfile(sqlite_db_file):
+        return jsonify(message="Repo not mined yet. Please mine the repo first."), 404
+
+    nodes, edges, measurements = get_coediting_network_data(sqlite_db_file)
+
+    data = {
+        "message": "Co-editing network fetched successfully",
+        "nodes": nodes,
+        "edges": edges,
+        "measurements": measurements,
+    }
+
+    json_data = json.dumps(data)
+    return Response(response=json_data, status=200, mimetype='application/json')
