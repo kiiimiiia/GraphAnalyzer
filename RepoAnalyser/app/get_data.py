@@ -1,6 +1,6 @@
 from .network_sorter import network_sorter
 from .measurements_calculator import measurements_calculator
-from .analyser import get_author_file_graph, get_coediting_graph
+from .analyser import get_author_file_graph, get_coediting_graph, get_coauthership_graph
 import os
 from git import Repo
 import pathpy as pp
@@ -15,6 +15,12 @@ def get_author_file_data(sqlite_db_file, from_date=None, to_date=None):
 
 def get_coediting_network_data(sqlite_db_file):
     n, node_info, edge_info = get_coediting_graph(sqlite_db_file)
+    nodes, edges = process_network_data(n)
+    measurements = calculate_network_measurements(nodes, edges)
+    return nodes, edges, measurements
+
+def get_coauthorship_network_data(sqlite_db_file):
+    n, node_info, edge_info = get_coauthership_graph(sqlite_db_file)
     nodes, edges = process_network_data(n)
     measurements = calculate_network_measurements(nodes, edges)
     return nodes, edges, measurements

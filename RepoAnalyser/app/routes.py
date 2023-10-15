@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, blueprints, jsonify, request, Response
-from .get_data import get_author_file_data, get_coediting_network_data, get_first_last_commit_dates
+from .get_data import get_author_file_data, get_coediting_network_data, get_first_last_commit_dates, get_coauthership_graph
 from .cloner import clone_and_mine
 from .helpers import parse_date, get_folder_name, get_db_filename
 import os
@@ -92,6 +92,29 @@ def coediting_network():
 
     data = {
         "message": "Co-editing network fetched successfully",
+        "nodes": nodes,
+        "edges": edges,
+        "measurements": measurements,
+    }
+
+    json_data = json.dumps(data)
+    return Response(response=json_data, status=200, mimetype='application/json')
+
+@blueprint.route('/get_coauthorship_network', methods=['GET'])
+def coauthorship_network():
+    repo_url = request.headers.get('url')
+
+    repo_folder_name = get_folder_name(repo_url)
+    sqlite_db_file = get_db_filename(repo_folder_name)
+
+    # Check if SQLite file exists
+    if not os.path.isfile(sqlite_db_file):
+        return jsonify(message="Repo not mined yet. Please mine the repo first."), 404
+
+    nodes, edges, measurements = get_coauthership_graph(sqlite_db_file)
+
+    data = {
+        "message": "Co-authorship network fetched successfully",
         "nodes": nodes,
         "edges": edges,
         "measurements": measurements,
