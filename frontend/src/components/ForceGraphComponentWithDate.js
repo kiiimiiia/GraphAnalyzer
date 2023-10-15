@@ -1,10 +1,9 @@
 import React, { useRef, useState } from 'react';
 import Network from "react-vis-network-graph";
-import writerImg from '../images/writer2.png';
-import documentImg from '../images/file.png';
-import writerIcon from '../images/author.png'; // Import the writer icon
-import documentIcon from '../images/code.png'; // Import the document icon
+import writerImg from '../images/author.png'; // Import the writer icon
+import documentImg from '../images/code.png'; // Import the document icon
 import { Grid } from '@mui/material';
+import CommitPanel from './CommitPanel'; 
 
 const options = {
   interaction: {
@@ -12,7 +11,7 @@ const options = {
     hover: true
   },
   manipulation: {
-    enabled: true,
+    enabled: false,
     initiallyActive: true,
     addNode: false,
     addEdge: false,
@@ -84,6 +83,7 @@ export const ForceGraphComponentWithDate = () => {
     event.preventDefault();
     const fromDateToBeSent = fromDate.replaceAll('-', ', ')
     const toDateToBeSent = toDate.replaceAll('-', ', ')
+
     const response = await fetch('http://127.0.0.1:5000/mine_repo_with_date', {
       method: 'POST',
       headers: {
@@ -100,22 +100,23 @@ export const ForceGraphComponentWithDate = () => {
     if (response.ok) {
       const nodesArray = Object.entries(data.nodes)
         .map(([key, value]) => {
-          const node = { id: key, ...value };
-          node.icon = isNaN(key) ? 'document' : 'writer';
+          const node = { id: key.toString(), ...value };
+          node.shape = "image"
+          node.label = key
+          node.title = key
+          node.image = !isNaN(key) ? writerImg: documentImg
           return node;
         });
     
       const edgesArray = Object.entries(data.edges)
         .map(([key, value]) => {
-          return {source: key.toString(), target: value.connected_to.toString()}
-          // const [source, target] = key.split(':').map((id) => id.trim());
-          // return { source: source || '', target: target || '', ...value };
+          return {from: key.toString(), to: value.connected_to.toString(), color: 'red'}
         })
         .filter((edge) => edge.source !== '' && edge.target !== '');
 
       const convertedData = {
         nodes: nodesArray,
-        links: edgesArray,
+        edges: edgesArray,
       };
     
       setGraphData(convertedData);
@@ -124,65 +125,16 @@ export const ForceGraphComponentWithDate = () => {
     }
       
   };
-  
-  //const margin = 10; // Adjust this value to control the margin
-  const nodeCanvasObject = (node, ctx, globalScale) => {
-  const ICON_SIZE = 36;
-  const textWidth = ctx.measureText(node.name).width;
-  const radius = Math.max(ICON_SIZE, textWidth) / 2 + 4;
-
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#000';
-    ctx.stroke();
-
-    if (node.icon === 'writer') {
-      const image = new Image();
-      image.src = writerIcon;
-      ctx.drawImage(image, node.x - ICON_SIZE / 2, node.y - ICON_SIZE / 2, ICON_SIZE, ICON_SIZE);
-    } else if (node.icon === 'document') {
-      const image = new Image();
-      image.src = documentIcon;
-      ctx.drawImage(image, node.x - ICON_SIZE / 2, node.y - ICON_SIZE / 2, ICON_SIZE, ICON_SIZE);
-
-    }
-
-    ctx.fillStyle = '#000';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = '12px Sans-Serif';
-    ctx.fillText(node.id , node.x, node.y + radius + 12);
-
-    // Draw links
-    ctx.beginPath();
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = 8;
-    graphData.links.forEach((link) => {
-      if (link.source === node.id || link.target === node.id) {
-        const sourceNode = graphData.nodes.find((n) => n.id === link.source);
-        const targetNode = graphData.nodes.find((n) => n.id === link.target);
-        if (sourceNode && targetNode) {
-          ctx.moveTo(sourceNode.x, sourceNode.y);
-          ctx.lineTo(targetNode.x, targetNode.y);
-        }
-      }
-    });
-    ctx.stroke();
-};
-
 
 const processData = (data) => {
   // Convert nodes
   const nodesArray = Object.entries(data.nodes).map(([key, value]) => {
       const node = { id: key, title: key, label: key, shape: "image", size: 20, cost: "$1000" };
       if (isNaN(key)) {
-          node.color = "purple";
+          node.color = "red";
           node.image = documentImg;
       } else {
-          node.color = "blue";
+          node.color = "green";
           node.image = writerImg;
       }
       return node;
@@ -199,10 +151,13 @@ const processData = (data) => {
           };
       })
       .filter(edge => edge.from !== '');
-
+  const first_commit_date = Object.entries(data.first_commit_date);
+  const last_commit_date =Object.entries(data.last_commit_date);
   return {
       nodes: nodesArray,
-      edges: edgesArray
+      edges: edgesArray,
+      first_commit_date: first_commit_date,
+      last_commit_date: last_commit_date
   };
 };
 
@@ -213,7 +168,6 @@ const loadData = () => {
 };
 
 function myFunction() {
-  // Code for your onclick function goes here
   console.log("Icon image clicked!");
 }
 
@@ -284,7 +238,6 @@ const handleAfterDrawing = (network) => {
   return (
     <> 
           <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
-
 <div className="url-input-container">
       <input
           type="text"
@@ -316,19 +269,8 @@ const handleAfterDrawing = (network) => {
       <button type="submit">Get the Network</button>
     </form>
     <div>
-
-      <Grid>
-        <Grid item md={7} style={{ display: "flex" }}>
-        <Network
-          graph={graphData}
-          ref={graphRef}
-          options={options}
-          getNetwork={handleAfterDrawing}
-          style={{ display: "flex", height: "40rem" }}
-      />
-
-        </Grid>
-        <Grid item md={3}>
+    <CommitPanel firstCommitDate={graphData.first_commit_date} />
+    <Grid item md={3}>
           <div>
             <p
               style={{
@@ -352,6 +294,18 @@ const handleAfterDrawing = (network) => {
             </p>
           </div>
         </Grid>
+      <Grid>
+        <Grid item md={7} style={{ display: "flex" }}>
+        <Network
+          graph={graphData}
+          ref={graphRef}
+          options={options}
+          getNetwork={handleAfterDrawing}
+          style={{ display: "flex", height: "40rem" }}
+      />
+
+        </Grid>
+       
       </Grid>
     </div>
   </>

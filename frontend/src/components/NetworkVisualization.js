@@ -1,5 +1,4 @@
 import React, { useRef, useState } from "react";
-import ReactDOM from "react-dom";
 import Network from "react-vis-network-graph";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
@@ -457,13 +456,13 @@ const loadMockData = () => {
     <> 
       <div>
           <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
-              <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Enter URL"
-                  style={{ marginRight: '10px' }}
-              />
+          <input
+          type="text"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="Enter URL"
+          className="custom-url-input"
+      />
               <button type="submit">Get the Network</button>
               <button type="button" onClick={loadMockData} style={{ marginLeft: '10px' }}>Load Mock Data</button>
           </form>
