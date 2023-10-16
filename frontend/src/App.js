@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Link } from 'react-router-dom';
+// import { BrowserRouter as Router, Routes, Link } from 'react-router-dom';
 import './App.css'
 import { ForceGraphComponentWithDate } from './components/ForceGraphComponentWithDate';
 //import { AuthorComponent } from './components/AuthorComponent';
+import {Document} from './components/Document';
 
 import NetworkVisualization from './components/NetworkVisualization';
 //import BarChart from './components/BarChart';
@@ -29,7 +30,7 @@ function App() {
           <button onClick={() => setShowRepoChartPage(true)} className='button-toggle'>
               Open RepoChart Page
           </button>
-          {currentPage ? <NetworkVisualization /> : <ForceGraphComponentWithDate />}
+          {currentPage ? <NetworkVisualization /> : <Document />}
       </div>
   );
 }

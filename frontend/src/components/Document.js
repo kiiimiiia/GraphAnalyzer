@@ -56,22 +56,22 @@ const initialData = {
     { id: 'node8', name: 'Node 8' },
   ],
   edges: [
-    { source: 'node1', target: 'node2' },
-    { source: 'node2', target: 'node3' },
-    { source: 'node2', target: 'node4' },
-    { source: 'node4', target: 'node1' },
-    { source: 'node4', target: 'node5' },
-    { source: 'node6', target: 'node3' },
-    { source: 'node7', target: 'node4' },
-    { source: 'node8', target: 'node2' },
-    { source: 'node6', target: 'node2' },
-    { source: 'node3', target: 'node3' },
-    { source: 'node4', target: 'node4' },
-    { source: 'node7', target: 'node1' },
+    { from: 'node1', to: 'node2' },
+    { from: 'node2', to: 'node3' },
+    { from: 'node2', to: 'node4' },
+    { from: 'node4', to: 'node1' },
+    { from: 'node4', to: 'node5' },
+    { from: 'node6', to: 'node3' },
+    { from: 'node7', to: 'node4' },
+    { from: 'node8', to: 'node2' },
+    { from: 'node6', to: 'node2' },
+    { from: 'node3', to: 'node3' },
+    { from: 'node4', to: 'node4' },
+    { from: 'node7', to: 'node1' },
   ]
 };
 
-export const ForceGraphComponentWithDate = () => {
+export const Document = () => {
   const graphRef = useRef(null);
   const [graphData, setGraphData] = useState(initialData);
   const [url, setUrl] = useState('');
@@ -80,23 +80,24 @@ export const ForceGraphComponentWithDate = () => {
 
   const sendRequest = async (event) => {
     event.preventDefault();
-
     const response = await fetch('http://127.0.0.1:5000/get_line_editing_paths', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'url': url,
         'file_paths': file_paths,
+        'todate': toDate
       },
       // body: JSON.stringify({
       //   url: url,
       // }),
+
     });
     const data = await response.json();
     if (response.ok) {
-      const nodesArray = Object.entries(data.nodes)
+      const nodesArray = Object.entries(data.dag_data.nodes)
         .map(([key, value]) => {
-          const node = { id: key.toString(), ...value };
+          const node = { id: key, ...value };
           node.shape = "image"
           node.label = key
           node.title = key
@@ -104,17 +105,19 @@ export const ForceGraphComponentWithDate = () => {
           return node;
         });
     
-      const edgesArray = Object.entries(data.edges)
+      const edgesArray = Object.entries(data.dag_data.edges)
         .map(([key, value]) => {
-          return {from: key.toString(), to: value.connected_to.toString(), color: 'red'}
+          const resultArray = key.split(',');
+          return {from: resultArray[0], to: resultArray[1], color: 'red'}
         })
-        .filter((edge) => edge.source !== '' && edge.target !== '');
+        .filter((edge) => edge.from !== '' && edge.to !== '');
 
       const convertedData = {
         nodes: nodesArray,
         edges: edgesArray,
       };
-    
+      console.log(edgesArray)
+
       setGraphData(convertedData);
     } else {
       console.error('Failed to fetch graph data:', data);
@@ -137,12 +140,13 @@ const processData = (data) => {
   });
 
   // Convert edges
-  const edgesArray = Object.entries(data.edges)
+  const edgesArray = Object.entries(data.dag_data.edges)
       .map(([key, value]) => {
-          const { weight, connected_to } = value;
+          const { weight } = value;
+          const resultArray = key.split(',');
           return {
-              from: key.split(':')[0].trim(),
-              to: connected_to,
+              from: resultArray[0],
+              to: resultArray[1],
               color: weight > 5 ? "red" : "purple"
           };
       })
@@ -151,6 +155,7 @@ const processData = (data) => {
       nodes: nodesArray,
       edges: edgesArray,
   };
+
 };
 
 
@@ -234,6 +239,24 @@ const handleAfterDrawing = (network) => {
           className="custom-url-input"
       />
       </div>
+      <div className="file-input-container">
+      <input
+          type="text"
+          value={file_paths}
+          onChange={(e) => setFilePath(e.target.value)}
+          placeholder="Enter File"
+          className="custom-file-input"
+      />
+      </div>
+      <div className="date-input-container">
+        <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            placeholder="Enter to Date"
+            className="custom-date-input"
+        />
+      </div>
       <button type="submit">Get the Network</button>
     </form>
     <div>
@@ -269,4 +292,4 @@ const handleAfterDrawing = (network) => {
   );
 };
 
-export default ForceGraphComponentWithDate;
+export default Document;
