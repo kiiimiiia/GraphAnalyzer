@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ForceGraphComponentWithDate } from './components/ForceGraphComponentWithDate';
 import './App.css'
 import NetworkVisualization from './components/NetworkVisualization';
-import BarChart from './components/BarChart';
+//import BarChart from './components/BarChart';
 
 
 function App() {

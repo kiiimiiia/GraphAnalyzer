@@ -6,6 +6,8 @@ def parse_date(date_str):
     year, month, day = map(int, date_str.split(","))
     return datetime(year, month, day)
 
+def get_folder_name(repo_url):
+    return repo_url.split('/')[-1].replace('.git', '')
 
-def get_db_filename(repo_url):
-    return 'data/' + repo_url.split('/')[-1] + '.db'
+def get_db_filename(repo_folder_name):
+    return repo_folder_name.split('/')[-1] + '.db'

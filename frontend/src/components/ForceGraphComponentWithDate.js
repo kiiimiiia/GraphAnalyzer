@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Network from "react-vis-network-graph";
-import writerImg from '../images/author.png'; // Import the writer icon
-import documentImg from '../images/code.png'; // Import the document icon
+import writerImg from '../images/author.png'; 
+import documentImg from '../images/code.png'; 
 import { Grid } from '@mui/material';
 import CommitPanel from './CommitPanel'; 
 
@@ -85,16 +85,16 @@ export const ForceGraphComponentWithDate = () => {
     const toDateToBeSent = toDate.replaceAll('-', ', ')
 
     const response = await fetch('http://127.0.0.1:5000/mine_repo_with_date', {
-      method: 'POST',
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'url': url,
         'fromdate': fromDateToBeSent,
         'todate': toDateToBeSent
       },
-      body: JSON.stringify({
-        url: url,
-      }),
+      // body: JSON.stringify({
+      //   url: url,
+      // }),
     });
     const data = await response.json();
     if (response.ok) {
@@ -161,11 +161,6 @@ const processData = (data) => {
   };
 };
 
-const loadData = () => {
-  const convertedData = processData(graphData);
-  console.log(convertedData);
-  setGraphData(convertedData);
-};
 
 function myFunction() {
   console.log("Icon image clicked!");
@@ -269,7 +264,7 @@ const handleAfterDrawing = (network) => {
       <button type="submit">Get the Network</button>
     </form>
     <div>
-    <CommitPanel firstCommitDate={graphData.first_commit_date} />
+    <CommitPanel firstCommitDate={graphData.first_commit_date} lastCommitDate={graphData.last_commit_date} />
     <Grid item md={3}>
           <div>
             <p
@@ -307,6 +302,7 @@ const handleAfterDrawing = (network) => {
         </Grid>
        
       </Grid>
+
     </div>
   </>
   );
