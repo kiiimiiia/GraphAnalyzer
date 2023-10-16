@@ -3,7 +3,6 @@ import Network from "react-vis-network-graph";
 import writerImg from '../images/author.png'; 
 import documentImg from '../images/code.png'; 
 import { Grid } from '@mui/material';
-import CommitPanel from './CommitPanel'; 
 
 const options = {
   interaction: {
@@ -57,18 +56,18 @@ const initialData = {
     { id: 'node8', name: 'Node 8' },
   ],
   edges: [
-    { from: 'node1', to: 'node2' },
-    { from: 'node2', to: 'node3' },
-    { from: 'node2', to: 'node4' },
-    { from: 'node4', to: 'node1' },
-    { from: 'node4', to: 'node5' },
-    { from: 'node6', to: 'node3' },
-    { from: 'node7', to: 'node4' },
-    { from: 'node8', to: 'node2' },
-    { from: 'node6', to: 'node2' },
-    { from: 'node3', to: 'node3' },
-    { from: 'node4', to: 'node4' },
-    { from: 'node7', to: 'node1' },
+    { source: 'node1', target: 'node2' },
+    { source: 'node2', target: 'node3' },
+    { source: 'node2', target: 'node4' },
+    { source: 'node4', target: 'node1' },
+    { source: 'node4', target: 'node5' },
+    { source: 'node6', target: 'node3' },
+    { source: 'node7', target: 'node4' },
+    { source: 'node8', target: 'node2' },
+    { source: 'node6', target: 'node2' },
+    { source: 'node3', target: 'node3' },
+    { source: 'node4', target: 'node4' },
+    { source: 'node7', target: 'node1' },
   ]
 };
 
@@ -76,21 +75,18 @@ export const ForceGraphComponentWithDate = () => {
   const graphRef = useRef(null);
   const [graphData, setGraphData] = useState(initialData);
   const [url, setUrl] = useState('');
-  const [fromDate, setFromDate] = useState('');
+  const [file_paths, setFilePath] = useState('');
   const [toDate, setToDate] = useState('');
 
   const sendRequest = async (event) => {
     event.preventDefault();
-    const fromDateToBeSent = fromDate.replaceAll('-', ', ')
-    const toDateToBeSent = toDate.replaceAll('-', ', ')
 
-    const response = await fetch('http://127.0.0.1:5000/mine_repo_with_date', {
+    const response = await fetch('http://127.0.0.1:5000/get_line_editing_paths', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'url': url,
-        'fromdate': fromDateToBeSent,
-        'todate': toDateToBeSent
+        'file_paths': file_paths,
       },
       // body: JSON.stringify({
       //   url: url,
@@ -104,7 +100,7 @@ export const ForceGraphComponentWithDate = () => {
           node.shape = "image"
           node.label = key
           node.title = key
-          node.image = !isNaN(key) ? writerImg: documentImg
+          node.image = documentImg
           return node;
         });
     
@@ -112,14 +108,12 @@ export const ForceGraphComponentWithDate = () => {
         .map(([key, value]) => {
           return {from: key.toString(), to: value.connected_to.toString(), color: 'red'}
         })
-        .filter((edge) => edge.from !== '' && edge.to !== '');
+        .filter((edge) => edge.source !== '' && edge.target !== '');
 
       const convertedData = {
         nodes: nodesArray,
         edges: edgesArray,
       };
-      console.log(nodesArray)
-      console.log(edgesArray)
     
       setGraphData(convertedData);
     } else {
@@ -153,13 +147,9 @@ const processData = (data) => {
           };
       })
       .filter(edge => edge.from !== '');
-  const first_commit_date = Object.entries(data.first_commit_date);
-  const last_commit_date =Object.entries(data.last_commit_date);
   return {
       nodes: nodesArray,
       edges: edgesArray,
-      first_commit_date: first_commit_date,
-      last_commit_date: last_commit_date
   };
 };
 
@@ -234,8 +224,8 @@ const handleAfterDrawing = (network) => {
 
   return (
     <> 
-          <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
-<div className="url-input-container">
+  <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
+  <div className="url-input-container">
       <input
           type="text"
           value={url}
@@ -243,25 +233,6 @@ const handleAfterDrawing = (network) => {
           placeholder="Enter URL"
           className="custom-url-input"
       />
-      </div>
-
-       <div className="date-input-container">
-        <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            placeholder="Enter from Date"
-            className="custom-date-input"
-        />
-      </div>
-      <div className="date-input-container">
-        <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            placeholder="Enter to Date"
-            className="custom-date-input"
-        />
       </div>
       <button type="submit">Get the Network</button>
     </form>
@@ -278,16 +249,6 @@ const handleAfterDrawing = (network) => {
                 fontFamily: "Verdana"
               }}
             >
-              {/* <b>Graph Analyzer</b>
-            </p>
-            <p
-              style={{
-                fontSize: "1.5rem",
-                display: "flex",
-                justifyContent: "center",
-                fontFamily: "Verdana"
-              }}
-            > */}
             </p>
           </div>
         </Grid>

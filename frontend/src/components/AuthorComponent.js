@@ -3,7 +3,6 @@ import Network from "react-vis-network-graph";
 import writerImg from '../images/author.png'; 
 import documentImg from '../images/code.png'; 
 import { Grid } from '@mui/material';
-import CommitPanel from './CommitPanel'; 
 
 const options = {
   interaction: {
@@ -72,7 +71,7 @@ const initialData = {
   ]
 };
 
-export const ForceGraphComponentWithDate = () => {
+export const AuthorComponent = () => {
   const graphRef = useRef(null);
   const [graphData, setGraphData] = useState(initialData);
   const [url, setUrl] = useState('');
@@ -84,7 +83,7 @@ export const ForceGraphComponentWithDate = () => {
     const fromDateToBeSent = fromDate.replaceAll('-', ', ')
     const toDateToBeSent = toDate.replaceAll('-', ', ')
 
-    const response = await fetch('http://127.0.0.1:5000/mine_repo_with_date', {
+    const response = await fetch('http://127.0.0.1:5000/get_coediting_network', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -92,35 +91,31 @@ export const ForceGraphComponentWithDate = () => {
         'fromdate': fromDateToBeSent,
         'todate': toDateToBeSent
       },
-      // body: JSON.stringify({
-      //   url: url,
-      // }),
     });
     const data = await response.json();
     if (response.ok) {
       const nodesArray = Object.entries(data.nodes)
         .map(([key, value]) => {
-          const node = { id: key.toString(), ...value };
+          const node = { id: parseInt(key).toString(), ...value };
           node.shape = "image"
-          node.label = key
-          node.title = key
-          node.image = !isNaN(key) ? writerImg: documentImg
+          node.label = parseInt(key)
+          node.title = parseInt(key)
+          node.image = writerImg
           return node;
         });
     
       const edgesArray = Object.entries(data.edges)
         .map(([key, value]) => {
-          return {from: key.toString(), to: value.connected_to.toString(), color: 'red'}
+          return {from: parseInt(key).toString(), to: value.connected_to.toString(), color: 'red'}
         })
         .filter((edge) => edge.from !== '' && edge.to !== '');
+        console.log(edgesArray)
 
       const convertedData = {
         nodes: nodesArray,
         edges: edgesArray,
       };
-      console.log(nodesArray)
-      console.log(edgesArray)
-    
+      console.log(convertedData)
       setGraphData(convertedData);
     } else {
       console.error('Failed to fetch graph data:', data);
@@ -144,22 +139,19 @@ const processData = (data) => {
 
   // Convert edges
   const edgesArray = Object.entries(data.edges)
-      .map(([key, value]) => {
+      .flatMap(([key, value]) => {
           const { weight, connected_to } = value;
           return {
               from: key.split(':')[0].trim(),
               to: connected_to,
-              color: weight > 5 ? "red" : "purple"
+              color: weight > 5 ? "red" : "green"
           };
       })
-      .filter(edge => edge.from !== '');
-  const first_commit_date = Object.entries(data.first_commit_date);
-  const last_commit_date =Object.entries(data.last_commit_date);
+      .filter(edge => edge.source !== '');
+      
   return {
       nodes: nodesArray,
       edges: edgesArray,
-      first_commit_date: first_commit_date,
-      last_commit_date: last_commit_date
   };
 };
 
@@ -234,8 +226,8 @@ const handleAfterDrawing = (network) => {
 
   return (
     <> 
-          <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
-<div className="url-input-container">
+  <form onSubmit={sendRequest} style={{ textAlign: 'center', margin: '50px' }}>
+  <div className="url-input-container">
       <input
           type="text"
           value={url}
@@ -266,7 +258,6 @@ const handleAfterDrawing = (network) => {
       <button type="submit">Get the Network</button>
     </form>
     <div>
-    {/* <CommitPanel firstCommitDate={graphData.first_commit_date} lastCommitDate={graphData.last_commit_date} /> */}
     <Grid item md={3}>
           <div>
             <p
@@ -278,16 +269,6 @@ const handleAfterDrawing = (network) => {
                 fontFamily: "Verdana"
               }}
             >
-              {/* <b>Graph Analyzer</b>
-            </p>
-            <p
-              style={{
-                fontSize: "1.5rem",
-                display: "flex",
-                justifyContent: "center",
-                fontFamily: "Verdana"
-              }}
-            > */}
             </p>
           </div>
         </Grid>
@@ -308,4 +289,4 @@ const handleAfterDrawing = (network) => {
   );
 };
 
-export default ForceGraphComponentWithDate;
+export default AuthorComponent;

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { ForceGraphComponentWithDate } from './components/ForceGraphComponentWithDate';
+import { BrowserRouter as Router, Routes, Link } from 'react-router-dom';
 import './App.css'
+import { ForceGraphComponentWithDate } from './components/ForceGraphComponentWithDate';
+//import { AuthorComponent } from './components/AuthorComponent';
+
 import NetworkVisualization from './components/NetworkVisualization';
 //import BarChart from './components/BarChart';
-
 
 function App() {
   const [currentPage, setCurrentPage] = useState(true);

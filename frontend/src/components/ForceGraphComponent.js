@@ -135,7 +135,7 @@ export const ForceGraphComponent = () => {
     ctx.lineWidth = 1;
     ctx.beginPath();
     graphData.links.forEach((link) => {
-      console.log(node.id );
+      console.log(link );
       if (link.source === node.id || link.target === node.id) {
         const sourceNode = graphData.nodes.find((n) => n.id === link.source);
         const targetNode = graphData.nodes.find((n) => n.id === link.target);
