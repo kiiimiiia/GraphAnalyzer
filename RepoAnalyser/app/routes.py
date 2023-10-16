@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, blueprints, jsonify, request, Response
-from .get_data import get_author_file_data, get_coediting_network_data, get_first_last_commit_dates, get_coauthership_graph, get_line_editing_path_data
+from .get_data import get_author_file_data, get_coediting_network_data, get_first_last_commit_dates, get_coauthorship_network_data, get_line_editing_path_data
 from .cloner import clone_and_mine
 from .helpers import parse_date, get_folder_name, get_db_filename
 import os
