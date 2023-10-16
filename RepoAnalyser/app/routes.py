@@ -111,7 +111,7 @@ def coauthorship_network():
     if not os.path.isfile(sqlite_db_file):
         return jsonify(message="Repo not mined yet. Please mine the repo first."), 404
 
-    nodes, edges, measurements = get_coauthership_graph(sqlite_db_file)
+    nodes, edges, measurements = get_coauthorship_network_data(sqlite_db_file)
 
     data = {
         "message": "Co-authorship network fetched successfully",
@@ -135,7 +135,7 @@ def line_editing_paths():
     if not os.path.isfile(sqlite_db_file):
         return jsonify(message="Repo not mined yet. Please mine the repo first."), 404
 
-    dag_data = get_line_editing_path_data(sqlite_db_file, repo_folder_name, ['setup.py'])
+    dag_data = get_line_editing_path_data(sqlite_db_file, repo_folder_name, [file_paths])
 
     data = {
         "message": "line editing network fetched successfully",
