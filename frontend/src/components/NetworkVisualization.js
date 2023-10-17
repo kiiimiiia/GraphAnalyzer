@@ -197,10 +197,10 @@ const NetworkVisualization = () => {
         
         // Integrate file_degree_centrality and page_rank
         if (measurements.file_degree_centrality[key] !== undefined) {
-            node.degreeCentrality = measurements.file_degree_centrality[key];
+            node.degreeCentrality =parseFloat(measurements.file_degree_centrality[key].toFixed(4));
         }
         if (measurements.page_rank[key] !== undefined) {
-            node.pageRank = measurements.page_rank[key];
+            node.pageRank = parseFloat(measurements.page_rank[key].toFixed(4));
             node.size = 10 + (measurements.page_rank[key] * 100); // Adjust size based on PageRank
         } else {
             node.size = 20; // Default size if PageRank is not available
@@ -213,7 +213,7 @@ const NetworkVisualization = () => {
     
         // Integrate author_degree_centrality
         if (measurements.author_degree_centrality[key] !== undefined) {
-            node.degreeCentrality = measurements.author_degree_centrality[key];
+            node.degreeCentrality = parseFloat(measurements.author_degree_centrality[key].toFixed(4));
             node.size += measurements.author_degree_centrality[key] * 50; // Adjust size based on centrality
         }
     }
@@ -234,12 +234,12 @@ const NetworkVisualization = () => {
         })
         .filter(edge => edge.from !== '');
       
-    /*return {
+    return {
         nodes: nodesArray,
         edges: edgesArray,
-    };*/
-    const processedData = bipartiteLayout(nodesArray, edgesArray);
-    return processedData;
+    };
+    // const processedData = bipartiteLayout(nodesArray, edgesArray);
+    // return processedData;
 };
 
 const sendRequest = async (event) => {
@@ -272,6 +272,9 @@ const sendRequest = async (event) => {
   };
 
   const options = {
+    //     physics: {
+    //     enabled: false
+    // },
     interaction: {
       selectable: true,
       hover: true
@@ -310,25 +313,35 @@ const sendRequest = async (event) => {
       }
     }
   };
+
+  
   function bipartiteLayout(nodes, edges) {
     let leftSet = new Set();  // Authors
     let rightSet = new Set(); // Files
+    const separation = 400;   // Define separation between the two sets
 
-    // Classify nodes based on your criteria (I am assuming based on shape for simplicity)
+    // Classify nodes based on your criteria 
     nodes.forEach(node => {
-        if (node.image === writerImg) { // This is just a guess, modify as per your criteria
+        if (node.image === writerImg) {
             leftSet.add(node.id);
         } else {
             rightSet.add(node.id);
         }
     });
 
-    // Set x position based on set
+    // Position nodes
+    let leftY = 0;   // Y position for authors
+    let rightY = 0;  // Y position for files
+
     nodes.forEach(node => {
         if (leftSet.has(node.id)) {
-            node.x = -300; // Adjust as needed
-        } else if (rightSet.has(node.id)) {
-            node.x = 300;  // Adjust as needed
+            node.x = 0;
+            node.y = leftY;
+            leftY += 100;  // Increment the y position for next node
+        } else {
+            node.x = separation;
+            node.y = rightY;
+            rightY += 100;  // Increment the y position for next node
         }
     });
 
@@ -337,6 +350,7 @@ const sendRequest = async (event) => {
         edges: edges
     };
 }
+
 
   function myFunction() {
     // Code for your onclick function goes here
