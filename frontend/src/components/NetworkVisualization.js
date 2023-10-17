@@ -211,14 +211,14 @@ const NetworkVisualization = () => {
 const sendRequest = async (event) => {
     event.preventDefault();
     const response = await fetch('http://127.0.0.1:5000/mine_repo', {
-        method: 'POST',
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             'url': url,
         },
-        body: JSON.stringify({
-            url: url,
-        }),
+        // body: JSON.stringify({
+        //     url: url,
+        // }),
     });
 
     const data = await response.json();

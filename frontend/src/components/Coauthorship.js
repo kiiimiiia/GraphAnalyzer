@@ -84,8 +84,8 @@ export const Coauthorship = () => {
       headers: {
         'Content-Type': 'application/json',
         'url': url,
-        'file_paths': file_paths,
-        'todate': toDate
+        // 'file_paths': file_paths,
+        // 'todate': toDate
       },
     });
     const data = await response.json();
@@ -102,8 +102,7 @@ export const Coauthorship = () => {
     
       const edgesArray = Object.entries(data.dag_data.edges)
         .map(([key, value]) => {
-          const resultArray = key.split(',');
-          return {from: resultArray[0], to: resultArray[1], color: 'red'}
+          return {from: key, to: value, color: 'red'}
         })
         .filter((edge) => edge.from !== '' && edge.to !== '');
 
@@ -201,7 +200,7 @@ const handleAfterDrawing = (network) => {
           className="custom-url-input"
       />
       </div>
-      <div className="file-input-container">
+      {/* <div className="file-input-container">
       <input
           type="text"
           value={file_paths}
@@ -209,16 +208,8 @@ const handleAfterDrawing = (network) => {
           placeholder="Enter File"
           className="custom-file-input"
       />
-      </div>
-      <div className="date-input-container">
-        <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            placeholder="Enter to Date"
-            className="custom-date-input"
-        />
-      </div>
+      </div> */}
+
       <button type="submit">Get the Network</button>
     </form>
     <div>
