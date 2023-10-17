@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import Network from "react-vis-network-graph";
 import writerImg from '../images/author.png'; 
-import documentImg from '../images/code.png'; 
 import { Grid } from '@mui/material';
 
 const options = {
@@ -109,13 +108,12 @@ export const AuthorComponent = () => {
           return {from: parseInt(key).toString(), to: value.connected_to.toString(), color: 'red'}
         })
         .filter((edge) => edge.from !== '' && edge.to !== '');
-        console.log(edgesArray)
-
+        const first_commit_date = data.first_commit_date
+        const last_commit_date = data.last_commit_date
       const convertedData = {
         nodes: nodesArray,
         edges: edgesArray,
       };
-      console.log(convertedData)
       setGraphData(convertedData);
     } else {
       console.error('Failed to fetch graph data:', data);
@@ -123,37 +121,6 @@ export const AuthorComponent = () => {
       
   };
 
-const processData = (data) => {
-  // Convert nodes
-  const nodesArray = Object.entries(data.nodes).map(([key, value]) => {
-      const node = { id: key, title: key, label: key, shape: "image", size: 20, cost: "$1000" };
-      if (isNaN(key)) {
-          node.color = "red";
-          node.image = documentImg;
-      } else {
-          node.color = "green";
-          node.image = writerImg;
-      }
-      return node;
-  });
-
-  // Convert edges
-  const edgesArray = Object.entries(data.edges)
-      .flatMap(([key, value]) => {
-          const { weight, connected_to } = value;
-          return {
-              from: key.split(':')[0].trim(),
-              to: connected_to,
-              color: weight > 5 ? "red" : "green"
-          };
-      })
-      .filter(edge => edge.source !== '');
-      
-  return {
-      nodes: nodesArray,
-      edges: edgesArray,
-  };
-};
 
 
 function myFunction() {

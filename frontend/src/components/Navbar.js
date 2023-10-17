@@ -12,8 +12,8 @@ import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import { useNavigate } from 'react-router-dom';
 
-const pages = ['Home', 'Document', 'AuthorComponent', 'Coauthorship'];
-const links = {Document: "/document", AuthorComponent: "/author", Coauthorship:"/coauthor", Home:'/'}
+const pages = ['Home', 'Document', 'coediting', 'Network_charts', 'Coediting_Charts'];
+const links = {Document: "/document", coediting: "/author", Network_charts:"/chart", Coediting_Charts:"/Coediting_Charts",Home:'/'}
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const navigate = useNavigate();

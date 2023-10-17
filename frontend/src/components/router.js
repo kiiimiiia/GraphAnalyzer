@@ -5,6 +5,8 @@ import AuthorComponent from './AuthorComponent';
 import Document from './Document';
 import Navbar from './Navbar';
 import Home from './Home';
+import Chart from './chart'
+import Coediting from './coeditingChart';
 
 const AppRouter = () => {
   return (
@@ -15,6 +17,9 @@ const AppRouter = () => {
         <Route path="/document" element={<Document />} />
         <Route path="/author" element={<AuthorComponent />} />
         <Route path="/coauthor" element={<Coauthorship />} />
+        <Route path="/chart" element={<Chart />} />
+        <Route path="/Coediting_Charts" element={<Coediting />} />
+
       </Routes>
     </Router>
   );

@@ -92,9 +92,6 @@ export const ForceGraphComponentWithDate = () => {
         'fromdate': fromDateToBeSent,
         'todate': toDateToBeSent
       },
-      // body: JSON.stringify({
-      //   url: url,
-      // }),
     });
     const data = await response.json();
     if (response.ok) {
@@ -113,55 +110,21 @@ export const ForceGraphComponentWithDate = () => {
           return {from: key.toString(), to: value.connected_to.toString(), color: 'red'}
         })
         .filter((edge) => edge.from !== '' && edge.to !== '');
-
+        const first_commit_date = data.first_commit_date
+        const last_commit_date = data.last_commit_date
       const convertedData = {
         nodes: nodesArray,
         edges: edgesArray,
+        first_commit_date: first_commit_date,
+        last_commit_date: last_commit_date,
       };
-      console.log(nodesArray)
-      console.log(edgesArray)
-    
+
       setGraphData(convertedData);
     } else {
       console.error('Failed to fetch graph data:', data);
     }
       
   };
-
-const processData = (data) => {
-  // Convert nodes
-  const nodesArray = Object.entries(data.nodes).map(([key, value]) => {
-      const node = { id: key, title: key, label: key, shape: "image", size: 20, cost: "$1000" };
-      if (isNaN(key)) {
-          node.color = "red";
-          node.image = documentImg;
-      } else {
-          node.color = "green";
-          node.image = writerImg;
-      }
-      return node;
-  });
-
-  // Convert edges
-  const edgesArray = Object.entries(data.edges)
-      .map(([key, value]) => {
-          const { weight, connected_to } = value;
-          return {
-              from: key.split(':')[0].trim(),
-              to: connected_to,
-              color: weight > 5 ? "red" : "purple"
-          };
-      })
-      .filter(edge => edge.from !== '');
-  const first_commit_date = Object.entries(data.first_commit_date);
-  const last_commit_date =Object.entries(data.last_commit_date);
-  return {
-      nodes: nodesArray,
-      edges: edgesArray,
-      first_commit_date: first_commit_date,
-      last_commit_date: last_commit_date
-  };
-};
 
 
 function myFunction() {
@@ -266,7 +229,7 @@ const handleAfterDrawing = (network) => {
       <button type="submit">Get the Network</button>
     </form>
     <div>
-    {/* <CommitPanel firstCommitDate={graphData.first_commit_date} lastCommitDate={graphData.last_commit_date} /> */}
+    <CommitPanel firstCommitDate={graphData.first_commit_date} lastCommitDate={graphData.last_commit_date} />
     <Grid item md={3}>
           <div>
             <p
@@ -278,16 +241,6 @@ const handleAfterDrawing = (network) => {
                 fontFamily: "Verdana"
               }}
             >
-              {/* <b>Graph Analyzer</b>
-            </p>
-            <p
-              style={{
-                fontSize: "1.5rem",
-                display: "flex",
-                justifyContent: "center",
-                fontFamily: "Verdana"
-              }}
-            > */}
             </p>
           </div>
         </Grid>

@@ -2,9 +2,9 @@ import React from 'react';
 
 const CommitPanel = ({ firstCommitDate, lastCommitDate }) => {
   return (
-    <div>
-      {/* <h2>Commit Dates</h2> */}
-      <p>First Commit Date: {firstCommitDate} Last Commit Date: {lastCommitDate}</p>
+    <div style={{ textAlign: 'center', margin: 'auto', width: '50%' }}>
+      <h2>Please Select time period between:</h2>
+      <p>First Commit Date: {firstCommitDate} and  Last Commit Date: {lastCommitDate}</p>
     </div>
   );
 }
