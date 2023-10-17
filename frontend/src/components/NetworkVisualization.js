@@ -12,7 +12,6 @@ const NetworkVisualization = () => {
   const graphRef = useRef(null);
   const [datas, setDatas] = useState("--");
 
-
   const [url, setUrl] = useState('');
   const _data = {
     nodes: [
@@ -266,6 +265,10 @@ const sendRequest = async (event) => {
       const convertedData = processData(mockData);
       console.log(convertedData);
       setData(convertedData);
+      dataRef.current = convertedData;
+
+      console.log(dataRef.current);
+
   };
 
   const options = {
