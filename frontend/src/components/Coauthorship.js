@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import Network from "react-vis-network-graph";
-// import writerImg from '../images/author.png'; 
-import documentImg from '../images/code.png'; 
+import writerImg from '../images/author.png'; 
 import { Grid } from '@mui/material';
 
 const options = {
@@ -71,7 +70,7 @@ const initialData = {
   ]
 };
 
-export const Document = () => {
+export const Coauthorship = () => {
   const graphRef = useRef(null);
   const [graphData, setGraphData] = useState(initialData);
   const [url, setUrl] = useState('');
@@ -80,7 +79,7 @@ export const Document = () => {
 
   const sendRequest = async (event) => {
     event.preventDefault();
-    const response = await fetch('http://127.0.0.1:5000/get_line_editing_paths', {
+    const response = await fetch('http://127.0.0.1:5000/get_coauthorship_network', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -88,7 +87,6 @@ export const Document = () => {
         'file_paths': file_paths,
         'todate': toDate
       },
-
     });
     const data = await response.json();
     if (response.ok) {
@@ -98,14 +96,14 @@ export const Document = () => {
           node.shape = "image"
           node.label = key
           node.title = key
-          node.image = documentImg
+          node.image = writerImg
           return node;
         });
+    
       const edgesArray = Object.entries(data.dag_data.edges)
         .map(([key, value]) => {
-          const [filename, hash] = key.match(/'(.*?)'/g).map(str => str.replace(/'/g, ''));      
-
-          return {from: filename, to: hash, color: 'red'}
+          const resultArray = key.split(',');
+          return {from: resultArray[0], to: resultArray[1], color: 'red'}
         })
         .filter((edge) => edge.from !== '' && edge.to !== '');
 
@@ -113,6 +111,8 @@ export const Document = () => {
         nodes: nodesArray,
         edges: edgesArray,
       };
+      console.log(edgesArray)
+
       setGraphData(convertedData);
     } else {
       console.error('Failed to fetch graph data:', data);
@@ -254,4 +254,4 @@ const handleAfterDrawing = (network) => {
   );
 };
 
-export default Document;
+export default Coauthorship;
