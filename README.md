@@ -28,14 +28,23 @@ Follow these steps to get the project up and running on your local machine.
     ```
    
 3. **Install dependencies.**
+3.1 ***Virtual Enviroment with the dependencies***
+    ```bash
+    python3.11 -m venv venv
+    ```
+      ```bash
+    source ./venv/bin/activate
+    ```
     ```bash
     pip install -r requirements.txt
+    or 
+    ./venv/bin/pip install -r ../requirements.txt
     ```
 
 4. **Run the application.**
     - If you're using Flask:
         ```bash
-        FLASK_APP=app.py FLASK_ENV=development flask run
+        FLASK_APP=run.py FLASK_ENV=development flask run
         ```
     - If you're using another framework or script, replace `app.py` with the appropriate file name.
 
@@ -68,7 +77,7 @@ Now, you should be able to access the application on `http://127.0.0.1:3000/`.
 - **POST `/mine_repo`**: Accepts a Git repository URL, clones it, and returns various metrics.
 - **POST `/mine_repo_with_date`**: Similar to `/mine_repo` but allows for a date range specification.
 ## Tabs on Frontend
-For each of the provided endpoints, we have seperate tabs on frontend.
+For each of the provided endpoints, we have seperate tabs on frontend. 
 
 <img src="frontend/src/images/tabs.png">
 
