@@ -255,7 +255,8 @@ const sendRequest = async (event) => {
     const data = await response.json();
     if (response.ok) {
         const convertedData = processData(data);
-        setDatas(convertedData);
+        setData(convertedData);
+        dataRef.current = convertedData;
     } else {
         console.error('Failed to fetch graph data:', data);
     }    
@@ -374,7 +375,7 @@ const sendRequest = async (event) => {
       // graphRef.current.zoomOut();
     }
   };
-
+ 
   function displayTooltip(content, x, y) {
     console.log("hover");
     const tooltipDiv = document.getElementById('tooltipDiv');
