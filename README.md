@@ -83,8 +83,7 @@ https://documenter.getpostman.com/view/21593327/2s9Y5YRhfB
 ## Future Work
 
 - Backend: Add real-time analysis and more metrics.
-- Frontend: (To be added)
-
+- Frontend: Add moer complex graph visualization on different tabs.
 ## Authors
 
 - [Mamad](mailto:seyedmohammad.farrahi@stud-mail.uni-wuerzburg.de)
