@@ -10,6 +10,8 @@ This project aims to provide an analytical overview of Git repositories. Metrics
 
 - Python 3.x
 - pip
+- npm
+- React@18
 
 ### Installation
 
@@ -26,27 +28,58 @@ Follow these steps to get the project up and running on your local machine.
     ```
    
 3. **Install dependencies.**
+3.1 ***Virtual Enviroment with the dependencies***
+    ```bash
+    python3.11 -m venv venv
+    ```
+      ```bash
+    source ./venv/bin/activate
+    ```
     ```bash
     pip install -r requirements.txt
+    or 
+    ./venv/bin/pip install -r ../requirements.txt
     ```
 
 4. **Run the application.**
     - If you're using Flask:
         ```bash
-        FLASK_APP=app.py FLASK_ENV=development flask run
+        FLASK_APP=run.py FLASK_ENV=development flask run
         ```
     - If you're using another framework or script, replace `app.py` with the appropriate file name.
 
 Now, you should be able to access the application on `http://127.0.0.1:5000/`.
 
+#### Frontend
+For running the frontend project, make sure thet the backedn is working and then follow the steps below:
+
+1. **Navigate into the project directory.**
+    ```bash
+    cd frontend/
+    ```
+
+2. **Install dependencies.**
+    ```bash
+    npm i
+    ```
+
+3. **Run the application.**
+    ```bash
+    npm start
+    ```
+Now, you should be able to access the application on `http://127.0.0.1:3000/`.
 ## Performance Metrics
 
 - **Backend**: Typically takes around 2 minutes to analyze a medium-sized repository.
-
+- **Frontend**: By hovering on each node, you will see these metrics according to the related node.
 
 ## API Endpoints
 - **POST `/mine_repo`**: Accepts a Git repository URL, clones it, and returns various metrics.
 - **POST `/mine_repo_with_date`**: Similar to `/mine_repo` but allows for a date range specification.
+## Tabs on Frontend
+For each of the provided endpoints, we have seperate tabs on frontend. 
+
+<img src="frontend/src/images/tabs.png">
 
 ## API Documentation
 
@@ -59,8 +92,7 @@ https://documenter.getpostman.com/view/21593327/2s9Y5YRhfB
 ## Future Work
 
 - Backend: Add real-time analysis and more metrics.
-- Frontend: (To be added)
-
+- Frontend: Add moer complex graph visualization on different tabs.
 ## Authors
 
 - [Mamad](mailto:seyedmohammad.farrahi@stud-mail.uni-wuerzburg.de)
